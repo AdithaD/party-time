@@ -8,6 +8,6 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
-<main class="flex h-screen items-center justify-center bg-pink-100">
+<main class="min-h-screen bg-pink-100">
 	{@render children?.()}
 </main>

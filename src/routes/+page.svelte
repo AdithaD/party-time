@@ -7,10 +7,12 @@
 	let { data } = $props();
 </script>
 
-<div class="h-[60vh] w-1/2">
-	<h1 class="mb-8 text-4xl font-bold">It's Party Time</h1>
-	<form method="POST" use:enhance class="space-y-4">
-		<Input name="title" placeholder="Event Title" class="input" minlength={1} />
-		<Form.Button>Create a New Event</Form.Button>
-	</form>
+<div class="flex h-screen items-center justify-center">
+	<div class="h-[60vh] w-1/4">
+		<h1 class="mb-8 text-4xl font-bold">It's Party Time</h1>
+		<form method="POST" use:enhance class="space-y-4">
+			<Input name="title" placeholder="Event Title" class="input" minlength={1} />
+			<Form.Button>Create a New Event</Form.Button>
+		</form>
+	</div>
 </div>
