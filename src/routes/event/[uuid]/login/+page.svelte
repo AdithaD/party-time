@@ -9,7 +9,7 @@
 		<h1>Sign in</h1>
 		<input name="name" class="" />
 		<input name="password" type="password" />
-		<Form.Button>Submit</Form.Button>
+		<button class="btn btn-primary">Submit</button>
 		<p>{form?.message}</p>
 	</form>
 </div>

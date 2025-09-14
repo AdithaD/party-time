@@ -15,8 +15,6 @@ export const actions = {
         const password = formData.get('password') as string;
 
         if (typeof name !== "string" || typeof password !== "string") {
-            console.log(name)
-            console.log(typeof password)
             return fail(400, {
                 message: "Invalid or missing fields",
                 email: ""
@@ -37,7 +35,7 @@ export const actions = {
             const id = crypto.randomBytes(10).toString('hex');
             const passwordHash = password.length > 0 ? await hashPassword(password) : null;
             const newUser = (await db.insert(users).values({ id, name, passwordHash, event: uuid }).returning())[0]
-            cookies.set('user', newUser.id, { path: "/" })
+            cookies.set('user', newUser.id, { path: `/` })
 
             redirect(303, `/event/${uuid}`)
         } else {
@@ -52,7 +50,7 @@ export const actions = {
                     return fail(403, "Incorrect password")
                 }
             }
-            cookies.set('user', user.id, { path: "/" })
+            cookies.set('user', user.id, { path: `/` })
             redirect(303, `/event/${uuid}`)
         }
     },

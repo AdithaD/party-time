@@ -682,10 +682,10 @@
   resolved "https://registry.yarnpkg.com/@libsql/win32-x64-msvc/-/win32-x64-msvc-0.4.7.tgz#b39cc6de4af797af736e9f2179002e8ebf4d2d4a"
   integrity sha512-7pJzOWzPm6oJUxml+PCDRzYQ4A1hTMHAciTAHfFK4fkbDZX33nWPVG7Y3vqdKtslcwAzwmrNDc6sXy2nwWnbiw==
 
-"@lucide/svelte@^0.544.0":
-  version "0.544.0"
-  resolved "https://registry.yarnpkg.com/@lucide/svelte/-/svelte-0.544.0.tgz#567aff4744be52c642dc978a4594c90fba816099"
-  integrity sha512-9f9O6uxng2pLB01sxNySHduJN3HTl5p0HDu4H26VR51vhZfiMzyOMe9Mhof3XAk4l813eTtl+/DYRvGyoRR+yw==
+"@lucide/svelte@^0.515.0":
+  version "0.515.0"
+  resolved "https://registry.yarnpkg.com/@lucide/svelte/-/svelte-0.515.0.tgz#f25d03b05b436fe01746a183ae9b759df83af930"
+  integrity sha512-CEAyqcZmNBfYzVgaRmK2RFJP5tnbXxekRyDk0XX/eZQRfsJmkDvmQwXNX8C869BgNeryzmrRyjHhUL6g9ZOHNA==
 
 "@napi-rs/wasm-runtime@^0.2.12", "@napi-rs/wasm-runtime@^0.2.5":
   version "0.2.12"
@@ -1500,6 +1500,11 @@ cssesc@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/cssesc/-/cssesc-3.0.0.tgz#37741919903b868565e1c09ea747445cd18983ee"
   integrity sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg==
+
+daisyui@^5.1.10:
+  version "5.1.10"
+  resolved "https://registry.yarnpkg.com/daisyui/-/daisyui-5.1.10.tgz#06be57a845e878cb8582538ec33832effade9e3d"
+  integrity sha512-p1J/HME2WmaSiy6u2alIbeP3gd5PNVft3+6Bdll0BRSm/UdI4084+pD01LxFug/5wGexNewWqbcEL6nB2n2o+Q==
 
 data-uri-to-buffer@^4.0.0:
   version "4.0.1"

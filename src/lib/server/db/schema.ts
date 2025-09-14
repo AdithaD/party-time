@@ -4,8 +4,8 @@ import { sqliteTable, integer, text } from 'drizzle-orm/sqlite-core';
 export const events = sqliteTable('events', {
 	id: text('id').primaryKey(),
 	title: text('title').notNull(),
-	startTime: integer('scheduled_time'),
-	endTime: integer('end_time'),
+	scheduledTime: integer('scheduled_time', { mode: 'timestamp' }),
+	endTime: integer('end_time', { mode: 'timestamp' }),
 	description: text('description'),
 	location: text('location'),
 
@@ -18,7 +18,10 @@ export const users = sqliteTable('users', {
 	event: text('event').references(() => events.id).notNull(),
 	name: text('name').notNull(),
 	passwordHash: text('hash'),
+	registered: integer('registered', { mode: 'boolean' }).default(false).notNull(),
 })
+
+export type User = typeof users.$inferSelect;
 
 export const polls = sqliteTable('polls', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
