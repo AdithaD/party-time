@@ -1,9 +1,12 @@
 <script lang="ts">
+	import { addDays } from 'date-fns';
 	import CommentCard from './CommentCard.svelte';
 
 	import Poll from './Poll.svelte';
 
 	import PollCreateForm from './PollCreateForm.svelte';
+	import MultiDayAvailability from './MultiDayAvailability.svelte';
+	import { getTimestamps } from './data.remote';
 
 	let { data } = $props();
 
@@ -27,7 +30,7 @@
 </script>
 
 <div class="relative flex min-h-screen items-stretch justify-center space-x-8">
-	<div class="w-1/3 bg-base-100 p-16 shadow-2xl">
+	<div class="w-2/5 bg-base-100 p-16 shadow-2xl">
 		<div class="mb-4 flex justify-between">
 			<h1 class="text-4xl font-bold">{data.event.title}</h1>
 			<a class="btn btn-neutral" href={`/event/${data.event.id}/edit`}>Edit</a>
@@ -110,7 +113,16 @@
 				<p>{data.event.description}</p>
 			</div>
 			<div>
-				<h2 class="mb-2 font-semibold">Polls</h2>
+				<h2 class="mb-2 font-semibold">Availablility</h2>
+				{#await getTimestamps() then timestamps}
+					<MultiDayAvailability
+						startDay={new Date()}
+						endDay={addDays(new Date(), 7)}
+						daysPerPage={5}
+						userId={data.user.id}
+						{timestamps}
+					/>
+				{/await}
 			</div>
 		</div>
 	</div>

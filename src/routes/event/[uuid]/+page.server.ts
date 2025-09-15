@@ -17,6 +17,13 @@ export const load = async ({ params, locals }) => {
                     id: true,
                     name: true,
                     registered: true,
+                },
+                with: {
+                    availabilities: {
+                        columns: {
+                            timestamp: true,
+                        }
+                    }
                 }
             },
             comments: {
@@ -48,6 +55,7 @@ export const load = async ({ params, locals }) => {
             },
         }
     })
+
 
     if (!event) error(404, "Specified event not found.")
 

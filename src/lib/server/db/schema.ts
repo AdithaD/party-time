@@ -29,7 +29,8 @@ export const users = sqliteTable('users', {
 
 export const userRelations = relations(users, ({ one, many }) => ({
 	event: one(events, { fields: [users.event], references: [events.id] }),
-	pollVotes: many(pollVotes)
+	pollVotes: many(pollVotes),
+	availabilities: many(availability)
 }));
 
 export type User = typeof users.$inferSelect;
@@ -108,3 +109,14 @@ export const commentsRelations = relations(comments, ({ one }) => ({
 }))
 
 export type Comment = typeof comments.$inferSelect;
+
+export const availability = sqliteTable('availability', {
+	user: text('user').references(() => users.id).notNull(),
+	timestamp: integer('timestamp').notNull(),
+},
+	(table) => [primaryKey({ columns: [table.user, table.timestamp] })]
+)
+
+export const availabilityRelations = relations(availability, ({ one }) => ({
+	user: one(users, { fields: [availability.user], references: [users.id] })
+}))
