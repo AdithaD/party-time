@@ -22,6 +22,8 @@
 				time: poll.createdAt
 			}))
 		].sort((a, b) => b.time.getTime() - a.time.getTime());
+
+	let registeredUsers = $derived(data.event.users.filter((user) => user.registered));
 </script>
 
 <div class="relative flex min-h-screen items-stretch justify-center space-x-8">
@@ -59,7 +61,7 @@
 							d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
 						/>
 					</svg>
-					<div>{data.event.location ?? 'Undecided'}</div>
+					<div>{data.event.location ?? 'No location set.'}</div>
 				</div>
 				<div class="flex space-x-4">
 					<svg
@@ -77,7 +79,9 @@
 						/>
 					</svg>
 					<div>
-						{data.event.scheduledTime?.toLocaleString() ?? 'Undecided'} - {data.event.endTime?.toLocaleString()}
+						{data.event.scheduledTime?.toLocaleString() ?? 'No time set.'}{data.event.endTime
+							? `- ${data.event.endTime.toLocaleString()}`
+							: ''}
 					</div>
 				</div>
 			</div>
@@ -97,7 +101,9 @@
 					/>
 				</svg>
 				<div>
-					{data.event.users.map((user) => user.name).join(', ')}
+					{registeredUsers.length > 0
+						? registeredUsers.map((user) => user.name).join(', ')
+						: 'No users registered.'}
 				</div>
 			</div>
 			<div>

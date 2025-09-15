@@ -1,21 +1,71 @@
 import { db } from '$lib/server/db/index.js';
-import { comments, pollOptions, polls, pollVotes, users } from '$lib/server/db/schema.js';
-import { error } from '@sveltejs/kit';
-import { eq, and } from 'drizzle-orm';
+import { comments, events, pollOptions, polls, pollVotes, users } from '$lib/server/db/schema.js';
+import { error, redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
+
+export const load = async ({ params, locals }) => {
+    const uuid = params.uuid;
+    if (!uuid) error(400, 'malformed uuid');
+
+    if (locals.session === null || locals.user === null) redirect(303, `/event/${uuid}/login`);
+
+    const event = await db.query.events.findFirst({
+        where: eq(events.id, uuid),
+        with: {
+            users: {
+                columns: {
+                    id: true,
+                    name: true,
+                    registered: true,
+                }
+            },
+            comments: {
+                with: {
+                    user: {
+                        columns: {
+                            name: true,
+                        }
+                    }
+                }
+            },
+            polls: {
+                with: {
+                    pollOptions: {
+                        with: {
+                            votes: {
+                                with: {
+                                    user: {
+                                        columns: {
+                                            id: true,
+                                            name: true,
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                }
+            },
+        }
+    })
+
+    if (!event) error(404, "Specified event not found.")
+
+    return { event, user: locals.user }
+};
 
 export const actions = {
-    postComment: async ({ cookies, request }) => {
-        const userId = cookies.get('user');
-        if (!userId) error(401, "Unauthorised")
-
-        const [user] = await db.select().from(users).where(eq(users.id, userId))
-        if (!user) error(401, "Unauthorised")
-
-        const data = await request.formData();
-        const eventId = data.get('event');
+    postComment: async ({ request, locals, params }) => {
+        const eventId = params.uuid;
         if (!eventId || typeof eventId != 'string') {
             error(400, "Invalid event id.")
         }
+
+        if (locals.user === null || locals.session === null) {
+            redirect(303, `/event/${eventId}/login`)
+        }
+
+        const data = await request.formData();
 
         const comment = data.get('comment');
 
@@ -24,24 +74,20 @@ export const actions = {
         }
 
         await db.insert(comments).values({
-            user: user.id,
+            user: locals.user.id,
             createdAt: new Date(),
             event: eventId,
             text: comment,
         })
     },
-    postPoll: async ({ cookies, request }) => {
+    postPoll: async ({ request, locals, params }) => {
+        if (!locals.user) redirect(303, `/event/${params.uuid}/login`);
+
         const data = await request.formData();
         const eventId = data.get('event');
         if (!eventId || typeof eventId != 'string') {
             error(400, "Invalid event id.")
         }
-
-        const userId = cookies.get('user');
-        if (!userId) error(401, "Unauthorised")
-
-        const [user] = await db.select().from(users).where(and(eq(users.id, userId), eq(users.event, eventId)))
-        if (!user) error(401, "Unauthorised")
 
         const title = validateString(data.get('title'), 'title');
         const options = data.getAll('option').map((o) => validateString(o, 'option'));
@@ -54,30 +100,23 @@ export const actions = {
 
 
     },
-    updateVote: async ({ cookies, request }) => {
-        const data = await request.formData();
+    updateVote: async ({ request, locals, params }) => {
+        if (!locals.user) redirect(303, `/event/${params.uuid}/login`);
 
+        const data = await request.formData();
         const pollOption = validateNumber(data.get('option'), "option");
         const poll = validateNumber(data.get('poll'), "poll");
 
-        const user = cookies.get('user');
-        if (!user) error(401, "Unauthorised")
-
-        await db.insert(pollVotes).values({ poll, pollOption, user }).onConflictDoUpdate({
+        await db.insert(pollVotes).values({ poll, pollOption, user: locals.user.id }).onConflictDoUpdate({
             target: [pollVotes.poll, pollVotes.user],
             set: { pollOption: pollOption }
         })
     },
-    registerInterest: async ({ cookies }) => {
-        const userId = cookies.get('user');
-        if (!userId) error(401, "Unauthorised")
+    registerInterest: async ({ locals, params }) => {
+        if (!locals.user) redirect(303, `/event/${params.uuid}/login`);
+        const user = await db.update(users).set({ registered: !locals.user.registered }).where(eq(users.id, locals.user.id)).returning();
 
-        const [user] = await db.select().from(users).where(eq(users.id, userId))
-        if (!user) error(401, "Unauthorised")
-
-        const result = await db.update(users).set({ registered: !user.registered }).where(eq(users.id, userId))
-
-        if (result.rowsAffected < 1) error(500, "Internal Server Error.")
+        locals.user = user[0];
     }
 };
 

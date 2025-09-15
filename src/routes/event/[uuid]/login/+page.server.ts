@@ -1,6 +1,7 @@
 import { db } from "$lib/server/db/index.js";
 import { events, users } from "$lib/server/db/schema.js";
 import { hashPassword } from "$lib/server/password.js";
+import { createSession, generateSessionToken } from "$lib/server/session.js";
 import { constantTimeEqual } from "@oslojs/crypto/subtle";
 import { fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
@@ -8,7 +9,7 @@ import * as crypto from "node:crypto";
 
 export const actions = {
     default: async ({ request, cookies, params }) => {
-        const uuid = params.uuid;
+        const eventId = params.uuid;
         const formData = await request.formData();
 
         const name = formData.get('name');
@@ -30,7 +31,7 @@ export const actions = {
 
 
         const event = await db.query.events.findFirst({
-            where: eq(events.id, uuid),
+            where: eq(events.id, eventId),
             with: {
                 users: {
                     where: eq(users.name, name),
@@ -47,11 +48,15 @@ export const actions = {
             // Register the user.
             const id = crypto.randomBytes(10).toString('hex');
             const passwordHash = password.length > 0 ? await hashPassword(password) : null;
-            const newUser = (await db.insert(users).values({ id, name, passwordHash, event: uuid }).returning())[0]
-            cookies.set('user', newUser.id, { path: `/` })
+
+            const newUser = (await db.insert(users).values({ id, name, passwordHash, event: eventId }).returning())[0]
+
+            const sessionToken = generateSessionToken();
+            const session = await createSession(sessionToken, newUser.id, eventId);
+            cookies.set('session', sessionToken, { path: `/`, httpOnly: true, sameSite: 'lax', expires: session.expiresAt })
 
             console.log('new user created. redirecting.')
-            redirect(303, `/event/${uuid}`)
+            redirect(303, `/event/${eventId}`)
         } else {
             const user = event.users[0];
             console.log(event.users)
@@ -67,9 +72,11 @@ export const actions = {
                     return fail(403, "Incorrect password")
                 }
             }
-            cookies.set('user', user.id, { path: `/` })
+            const sessionToken = generateSessionToken();
+            const session = await createSession(sessionToken, user.id, eventId);
+            cookies.set('session', sessionToken, { path: `/`, httpOnly: true, sameSite: 'lax', expires: session.expiresAt })
             console.log('user found. redirecting.')
-            redirect(303, `/event/${uuid}`)
+            redirect(303, `/event/${eventId}`)
         }
     },
 };

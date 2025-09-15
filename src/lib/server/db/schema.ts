@@ -21,7 +21,7 @@ export type Event = typeof events.$inferSelect;
 
 export const users = sqliteTable('users', {
 	id: text('id').primaryKey(),
-	event: text('event').references(() => events.id).notNull(),
+	event: text('event').references(() => events.id, { onDelete: 'cascade' }).notNull(),
 	name: text('name').notNull(),
 	passwordHash: text('hash'),
 	registered: integer('registered', { mode: 'boolean' }).default(false).notNull(),
@@ -34,10 +34,25 @@ export const userRelations = relations(users, ({ one, many }) => ({
 
 export type User = typeof users.$inferSelect;
 
+export const sessions = sqliteTable('sessions', {
+	id: text('id').primaryKey(),
+	user: text('user').references(() => users.id).notNull(),
+	event: text('event').references(() => events.id, { onDelete: 'cascade' }).notNull(),
+	expiresAt: integer("expires_at", { mode: 'timestamp' }).notNull(),
+})
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, { fields: [sessions.user], references: [users.id] }),
+	event: one(events, { fields: [sessions.user], references: [events.id] })
+}))
+
+export type Session = typeof sessions.$inferSelect;
+
+
 export const polls = sqliteTable('polls', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	title: text('title').notNull(),
-	event: text('event').references(() => events.id).notNull(),
+	event: text('event').references(() => events.id, { onDelete: 'cascade' }).notNull(),
 	description: text('description'),
 	createdAt: integer('created_at', { mode: 'timestamp' }).notNull()
 })
@@ -51,7 +66,7 @@ export type Poll = typeof polls.$inferSelect;
 
 export const pollOptions = sqliteTable('poll_options', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	poll: integer('poll').references(() => polls.id).notNull(),
+	poll: integer('poll').references(() => polls.id, { onDelete: 'cascade' }).notNull(),
 	value: text('value').notNull(),
 })
 
@@ -64,7 +79,7 @@ export type PollOption = typeof pollOptions.$inferSelect;
 
 export const pollVotes = sqliteTable('poll_votes', {
 	user: text('user').references(() => users.id).notNull(),
-	poll: integer('poll').references(() => polls.id).notNull(),
+	poll: integer('poll').references(() => polls.id, { onDelete: 'cascade' }).notNull(),
 	pollOption: integer('poll_option').references(() => pollOptions.id).notNull(),
 }, (table) => [primaryKey({ columns: [table.poll, table.user] })])
 
@@ -77,7 +92,7 @@ export type PollVotes = typeof pollVotes.$inferSelect;
 
 export const comments = sqliteTable('comments', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
-	event: text('event').references(() => events.id).notNull(),
+	event: text('event').references(() => events.id, { onDelete: 'cascade' }).notNull(),
 	user: text('user').references(() => users.id).notNull(),
 	text: text('text').notNull(),
 	createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
