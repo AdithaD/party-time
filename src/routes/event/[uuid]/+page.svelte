@@ -1,10 +1,30 @@
 <script lang="ts">
+	import CommentCard from './CommentCard.svelte';
+
+	import Poll from './Poll.svelte';
+
+	import PollCreateForm from './PollCreateForm.svelte';
+
 	let { data } = $props();
 
 	let postMode = $state<'none' | 'comment' | 'poll' | 'payment'>('none');
+
+	type ExpanedPoll = (typeof data.event.polls)[0];
+	type ExpandedComment = (typeof data.event.comments)[0];
+	const feed: Array<{ comment: ExpandedComment; time: Date } | { poll: ExpanedPoll; time: Date }> =
+		[
+			...data.event.comments.map((comment) => ({
+				comment: comment,
+				time: comment.createdAt
+			})),
+			...data.event.polls.map((poll) => ({
+				poll: poll,
+				time: poll.createdAt
+			}))
+		].sort((a, b) => b.time.getTime() - a.time.getTime());
 </script>
 
-<div class="relative flex h-screen items-stretch justify-center space-x-8">
+<div class="relative flex min-h-screen items-stretch justify-center space-x-8">
 	<div class="w-1/3 bg-base-100 p-16 shadow-2xl">
 		<div class="mb-4 flex justify-between">
 			<h1 class="text-4xl font-bold">{data.event.title}</h1>
@@ -77,7 +97,7 @@
 					/>
 				</svg>
 				<div>
-					{data.users.map((user) => user.name).join(', ')}
+					{data.event.users.map((user) => user.name).join(', ')}
 				</div>
 			</div>
 			<div>
@@ -89,13 +109,31 @@
 		</div>
 	</div>
 	<div class="flex w-1/3 flex-col bg-base-100 p-16 shadow-2xl">
-		<h2 class="text-2xl font-bold">Posts</h2>
-		<div class="flex-grow"></div>
-		<hr class="my-8" />
-		<div class="flex justify-center space-x-4">
-			<button class="btn btn-neutral">+ Comment</button>
-			<button class="btn btn-neutral">+ Poll</button>
-			<button class="btn btn-neutral">+ Payment</button>
+		<h2 class="mb-4 text-2xl font-bold">Posts</h2>
+		<div class="flex-grow space-y-4 overflow-y-auto">
+			{#each feed as item}
+				{#if 'comment' in item}
+					<CommentCard comment={item.comment}></CommentCard>
+				{:else if 'poll' in item}
+					<Poll poll={item.poll} userId={data.user.id}></Poll>
+				{/if}
+			{/each}
 		</div>
+		<hr class="my-8" />
+		{#if postMode == 'none'}
+			<div class="flex justify-center space-x-4">
+				<button class="btn btn-neutral" onclick={() => (postMode = 'comment')}>+ Comment</button>
+				<button class="btn btn-neutral" onclick={() => (postMode = 'poll')}>+ Poll</button>
+				<button class="btn btn-neutral" onclick={() => (postMode = 'payment')}>+ Payment</button>
+			</div>
+		{:else if postMode == 'comment'}
+			<form class="flex flex-col items-stretch space-y-4" method="POST" action="?/postComment">
+				<input name="event" value={data.event.id} hidden />
+				<textarea class="textarea w-full" name="comment"></textarea>
+				<button class="btn w-full text-start btn-primary" type="submit">Post Comment</button>
+			</form>
+		{:else if postMode == 'poll'}
+			<PollCreateForm eventId={data.event.id}></PollCreateForm>
+		{:else}{/if}
 	</div>
 </div>

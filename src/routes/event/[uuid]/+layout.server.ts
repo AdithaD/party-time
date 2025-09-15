@@ -1,5 +1,5 @@
 import { db } from "$lib/server/db";
-import { events, users, type User, type Event } from "$lib/server/db/schema";
+import { events, users } from "$lib/server/db/schema";
 import { error, redirect } from "@sveltejs/kit";
 import { eq, and } from "drizzle-orm";
 
@@ -13,19 +13,41 @@ export const load = async ({ params, cookies }) => {
     const [user] = await db.select().from(users).where(and(eq(users.id, userId), eq(users.event, uuid)))
     if (!user) redirect(303, `/event/${uuid}/login`);
 
-    const rows = await db.select().from(events).where(and(eq(events.id, uuid))).leftJoin(users, and(eq(events.id, users.event), eq(users.registered, true)));
+    const event = await db.query.events.findFirst({
+        where: eq(events.id, uuid),
+        with: {
+            users: true,
+            comments: {
+                with: {
+                    user: {
+                        columns: {
+                            name: true,
+                        }
+                    }
+                }
+            },
+            polls: {
+                with: {
+                    pollOptions: {
+                        with: {
+                            votes: {
+                                with: {
+                                    user: {
+                                        columns: {
+                                            id: true,
+                                            name: true,
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                }
+            },
+        }
+    })
 
-    if (rows.length == 0) error(404, "No event found for this UUID")
-    const result = rows.reduce<{ events: Event; users: User[] }>(
-        (acc, row) => {
-            const user = row.users;
-            if (user) {
-                acc.users.push(user);
-            }
-            return acc;
-        },
-        { events: rows[0].events, users: [] }
-    );
+    if (!event) error(404, "Specified event not found.")
 
-    return { event: result.events, users: result.users, user }
+    return { event, user }
 };

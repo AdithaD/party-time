@@ -1,9 +1,9 @@
 import { db } from "$lib/server/db/index.js";
-import { users } from "$lib/server/db/schema.js";
+import { events, users } from "$lib/server/db/schema.js";
 import { hashPassword } from "$lib/server/password.js";
 import { constantTimeEqual } from "@oslojs/crypto/subtle";
 import { fail, redirect } from "@sveltejs/kit";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as crypto from "node:crypto";
 
 export const actions = {
@@ -29,19 +29,36 @@ export const actions = {
         }
 
 
-        const query = await db.select().from(users).where(and(eq(users.name, name), eq(users.event, uuid)))
-        if (query.length == 0) {
+        const event = await db.query.events.findFirst({
+            where: eq(events.id, uuid),
+            with: {
+                users: {
+                    where: eq(users.name, name),
+                    limit: 1,
+                }
+            }
+        });
+
+        if (!event) {
+            return fail(400, "Event does not exist.")
+        }
+
+        if (!event.users || event.users.length == 0) {
             // Register the user.
             const id = crypto.randomBytes(10).toString('hex');
             const passwordHash = password.length > 0 ? await hashPassword(password) : null;
             const newUser = (await db.insert(users).values({ id, name, passwordHash, event: uuid }).returning())[0]
             cookies.set('user', newUser.id, { path: `/` })
 
+            console.log('new user created. redirecting.')
             redirect(303, `/event/${uuid}`)
         } else {
-            const user = query[0];
+            const user = event.users[0];
+            console.log(event.users)
 
             if (user.passwordHash) {
+                if (!password || password.length == 0) return fail(403, "Incorrect password")
+
                 const passwordHash = await hashPassword(password);
                 const userHash = new TextEncoder().encode(passwordHash);
                 const dbHash = new TextEncoder().encode(user.passwordHash);
@@ -51,6 +68,7 @@ export const actions = {
                 }
             }
             cookies.set('user', user.id, { path: `/` })
+            console.log('user found. redirecting.')
             redirect(303, `/event/${uuid}`)
         }
     },

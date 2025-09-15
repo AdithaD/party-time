@@ -1,37 +1,72 @@
 import { db } from '$lib/server/db/index.js';
-import { users } from '$lib/server/db/schema.js';
+import { comments, pollOptions, polls, pollVotes, users } from '$lib/server/db/schema.js';
 import { error } from '@sveltejs/kit';
 import { eq, and } from 'drizzle-orm';
 
 export const actions = {
-    update: async ({ request, cookies }) => {
+    postComment: async ({ cookies, request }) => {
+        const userId = cookies.get('user');
+        if (!userId) error(401, "Unauthorised")
+
+        const [user] = await db.select().from(users).where(eq(users.id, userId))
+        if (!user) error(401, "Unauthorised")
+
         const data = await request.formData();
-        const eventId = data.get('event')
-        if (!eventId || typeof eventId !== 'string') error(404, "Event id not specified.")
+        const eventId = data.get('event');
+        if (!eventId || typeof eventId != 'string') {
+            error(400, "Invalid event id.")
+        }
+
+        const comment = data.get('comment');
+
+        if (!comment || typeof comment !== 'string') {
+            error(400, "Missing comment.")
+        }
+
+        await db.insert(comments).values({
+            user: user.id,
+            createdAt: new Date(),
+            event: eventId,
+            text: comment,
+        })
+    },
+    postPoll: async ({ cookies, request }) => {
+        const data = await request.formData();
+        const eventId = data.get('event');
+        if (!eventId || typeof eventId != 'string') {
+            error(400, "Invalid event id.")
+        }
 
         const userId = cookies.get('user');
         if (!userId) error(401, "Unauthorised")
 
-        const [user] = await db.select().from(users).where(and(eq(users.event, eventId), (eq(users.id, userId))))
+        const [user] = await db.select().from(users).where(and(eq(users.id, userId), eq(users.event, eventId)))
         if (!user) error(401, "Unauthorised")
 
-        const title = data.get('title');
+        const title = validateString(data.get('title'), 'title');
+        const options = data.getAll('option').map((o) => validateString(o, 'option'));
 
-        if (typeof title !== 'string') {
-            error(400, 'Title is required.')
-        }
+        const poll = (await db.insert(polls).values({ event: eventId, title, createdAt: new Date() }).returning()).at(0);
 
-        const description = data.get('description');
-        if (description && typeof description !== 'string') {
-            error(400, "Description must be a string or null")
-        }
+        if (!poll) error(500, "Failed to insert poll into database.")
 
-        const location = data.get('location');
-        if (location && typeof location !== 'string') {
-            error(400, "Location must be a string or null")
-        }
+        await db.insert(pollOptions).values(options.map((value) => { return { poll: poll.id, value } }))
 
 
+    },
+    updateVote: async ({ cookies, request }) => {
+        const data = await request.formData();
+
+        const pollOption = validateNumber(data.get('option'), "option");
+        const poll = validateNumber(data.get('poll'), "poll");
+
+        const user = cookies.get('user');
+        if (!user) error(401, "Unauthorised")
+
+        await db.insert(pollVotes).values({ poll, pollOption, user }).onConflictDoUpdate({
+            target: [pollVotes.poll, pollVotes.user],
+            set: { pollOption: pollOption }
+        })
     },
     registerInterest: async ({ cookies }) => {
         const userId = cookies.get('user');
@@ -45,3 +80,25 @@ export const actions = {
         if (result.rowsAffected < 1) error(500, "Internal Server Error.")
     }
 };
+
+function validateString(str: FormDataEntryValue | null, fieldName: string): string {
+    if (!str || typeof str !== 'string') {
+        error(400, `Invalid ${fieldName}`)
+    }
+
+    return str;
+}
+
+function validateNumber(str: FormDataEntryValue | null, fieldName: string): number {
+
+    if (!str || typeof str !== 'string') {
+        error(400, `Invalid ${fieldName}`)
+    }
+    let number: number;
+    try {
+        number = parseInt(str);
+    } catch {
+        error(400, "Invalid option id.")
+    }
+    return number;
+}
