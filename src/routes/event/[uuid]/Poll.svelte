@@ -30,6 +30,8 @@
 	} = $props();
 
 	let optionForm: HTMLFormElement;
+
+	const totalVotes = poll.pollOptions.map((po) => po.votes.length).reduce((a, b) => a + b);
 </script>
 
 <div class="card w-full bg-base-200 shadow-sm card-sm">
@@ -44,22 +46,26 @@
 			<input name="poll" value={poll.id} hidden />
 			<div class="card flex flex-col items-stretch space-y-4">
 				{#each poll.pollOptions as option}
-					<div class="flex justify-between rounded-md bg-base-100 p-4 shadow-md">
-						<div class="space-x-2">
-							<input
-								type="radio"
-								class="radio radio-primary"
-								name="option"
-								id="{poll.id}-{option.id}"
-								checked={option.votes.find((v) => v.user.id == userId) != null}
-								value={option.id}
-								onchange={() => optionForm.requestSubmit()}
-							/>
-							<label for="{poll.id}-{option.id}">{option.value}</label>
+					<div class="rounded-md bg-base-100 p-4 shadow-md">
+						<div class="flex justify-between">
+							<div class="space-x-2">
+								<input
+									type="radio"
+									class="radio radio-primary"
+									name="option"
+									id="{poll.id}-{option.id}"
+									checked={option.votes.find((v) => v.user.id == userId) != null}
+									value={option.id}
+									onchange={() => optionForm.requestSubmit()}
+								/>
+								<label for="{poll.id}-{option.id}">{option.value}</label>
+							</div>
+							<div>
+								{option.votes.map((v) => v.user.name).join(', ')}
+							</div>
 						</div>
-						<div>
-							{option.votes.map((v) => v.user.name).join(', ')}
-						</div>
+						<progress class="progress progress-primary" max={totalVotes} value={option.votes.length}
+						></progress>
 					</div>
 				{/each}
 			</div>
