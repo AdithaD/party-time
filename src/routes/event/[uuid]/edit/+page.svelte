@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { dateToDatetimeLocalString } from '$lib/utils.js';
-	import z from 'zod';
+	import { dateToDatetimeLocalString, daysOfWeek } from '$lib/utils.js';
 
 	let { data, form } = $props();
+
+	type DaysOfWeek = (typeof daysOfWeek)[number];
+
+	let selectedDaysOfWeek = $state<DaysOfWeek[]>([]);
 
 	let newEvent = $state(data.event);
 	let hasEdits = $state(false);
@@ -54,6 +57,72 @@
 				></textarea>
 				<div class="text-error">{form?.zodError?.fieldErrors.description}</div>
 			</div>
+			<div class="flex flex-col gap-4">
+				<h2 class="label">Availability</h2>
+				<div class="flex items-center gap-4">
+					<input class="radio" type="radio" value="days" name="availabilityType" />
+					<label class="label" for="availabilityDays">Amount of Days</label>
+					<input
+						class="input input-sm"
+						type="number"
+						placeholder="7 days"
+						name="availabilityDays"
+					/>
+				</div>
+				<div class="flex items-center gap-4">
+					<input class="radio" type="radio" value="range" name="availabilityType" />
+					<div class="label">Date Range</div>
+					<input class="input input-sm" type="date" name="availabilityFrom" />
+					<div>-</div>
+					<input class="input input-sm" type="date" name="availabilityTo" />
+				</div>
+				<div class="flex justify-between">
+					{#each daysOfWeek as day}
+						<div
+							class="flex items-center-safe space-x-4 rounded-box border border-neutral transition-colors hover:border-primary
+							{selectedDaysOfWeek.includes(day) ? 'border-primary ' : ''}"
+						>
+							<input
+								class="checkbox border-0"
+								id="day-{day}"
+								type="checkbox"
+								value={day}
+								name="daysOfWeek"
+								bind:group={selectedDaysOfWeek}
+								hidden
+							/>
+							<label for="day-{day}" class="label px-4 py-2 text-xs text-white capitalize"
+								>{day}</label
+							>
+						</div>
+					{/each}
+				</div>
+				<div class="flex justify-between gap-4">
+					<button
+						type="button"
+						class="btn flex-grow btn-neutral"
+						onclick={() => (selectedDaysOfWeek = [...daysOfWeek])}>All</button
+					>
+					<button
+						type="button"
+						class="btn flex-grow btn-neutral"
+						onclick={() =>
+							(selectedDaysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])}
+						>Weekdays</button
+					>
+					<button
+						type="button"
+						class="btn flex-grow btn-neutral"
+						onclick={() => (selectedDaysOfWeek = ['saturday', 'sunday'])}>Weekends</button
+					>
+					<button
+						type="button"
+						class="btn flex-grow btn-neutral"
+						onclick={() => (selectedDaysOfWeek = [])}>None</button
+					>
+				</div>
+			</div>
+			<div class="divider my-8"></div>
 			<div class="flex justify-between">
 				<a href={`/event/${data.eventId}`} class="btn btn-error">Cancel</a>
 				<button type="submit" class="btn btn-primary">Save Changes</button>

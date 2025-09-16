@@ -134,8 +134,7 @@
 							<div class="collapse-content text-sm">
 								{#await getTimestamps(event.id) then timestamps}
 									<MultiDayAvailability
-										startDay={new Date()}
-										endDay={addDays(new Date(), 7)}
+										{...event.availability}
 										daysPerPage={5}
 										userId={data.user.id}
 										submitFn={(availabilities) =>

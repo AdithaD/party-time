@@ -1,23 +1,26 @@
 <script lang="ts">
-	import { eachDayOfInterval } from 'date-fns';
+	import { eachDayOfInterval, getDay } from 'date-fns';
 	import DayAvailability from './DayAvailability.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { getDaysInInterval } from '$lib/utils';
 
 	type Props = {
-		startDay: Date;
-		endDay: Date;
+		start: Date;
+		end: Date;
+		daysOfWeek: number;
 		daysPerPage: number;
 		userId: string;
 		submitFn: (timestamps: number[]) => void;
 		timestamps: Map<number, string[]>;
 	};
 
-	let { startDay, endDay, daysPerPage, timestamps, userId, submitFn }: Props = $props();
+	let { start, end, daysOfWeek, daysPerPage, timestamps, userId, submitFn }: Props = $props();
 
-	const days = eachDayOfInterval({ start: startDay, end: endDay });
+	const days = $derived(getDaysInInterval(start, end, daysOfWeek));
+
+	$inspect(daysOfWeek);
 
 	let windowStartDay = $state(0);
-	$inspect(windowStartDay);
 	let daysInPage = $derived(
 		days.slice(windowStartDay, Math.min(days.length, windowStartDay + daysPerPage))
 	);
@@ -42,7 +45,7 @@
 		>
 		<button
 			class="btn flex-grow btn-xs"
-			disabled={windowStartDay == days.length - daysPerPage}
+			disabled={windowStartDay >= days.length - daysPerPage}
 			onclick={() => (windowStartDay = Math.min(days.length - daysPerPage, windowStartDay + 1))}
 		>
 			Next

@@ -1,3 +1,5 @@
+import type { EventAvailability } from '$lib/utils';
+import { addDays } from 'date-fns';
 import { relations } from 'drizzle-orm';
 import { sqliteTable, integer, text, primaryKey } from 'drizzle-orm/sqlite-core';
 
@@ -9,6 +11,11 @@ export const events = sqliteTable('events', {
 	description: text('description'),
 	location: text('location'),
 
+	availability: text('availability', { mode: 'json' }).$type<EventAvailability>().default({
+		start: new Date(),
+		end: addDays(new Date(), 7),
+		daysOfWeek: 1 << 7 - 1,
+	}).notNull(),
 });
 
 export const eventRelations = relations(events, ({ many }) => ({
@@ -79,7 +86,7 @@ export const pollOptionsRelations = relations(pollOptions, ({ one, many }) => ({
 export type PollOption = typeof pollOptions.$inferSelect;
 
 export const pollVotes = sqliteTable('poll_votes', {
-	user: text('user').references(() => users.id).notNull(),
+	user: text('user').references(() => users.id, { onDelete: 'cascade' }).notNull(),
 	poll: integer('poll').references(() => polls.id, { onDelete: 'cascade' }).notNull(),
 	pollOption: integer('poll_option').references(() => pollOptions.id).notNull(),
 }, (table) => [primaryKey({ columns: [table.poll, table.user] })])
@@ -111,7 +118,7 @@ export const commentsRelations = relations(comments, ({ one }) => ({
 export type Comment = typeof comments.$inferSelect;
 
 export const availability = sqliteTable('availability', {
-	user: text('user').references(() => users.id).notNull(),
+	user: text('user').references(() => users.id, { onDelete: 'cascade' }).notNull(),
 	timestamp: integer('timestamp').notNull(),
 },
 	(table) => [primaryKey({ columns: [table.user, table.timestamp] })]
