@@ -63,7 +63,6 @@ export const actions = {
 
         if (result.success) {
             try {
-                console.log('redirecting.')
                 await db.update(events)
                     .set({ scheduledTime: result.data.dateTimeFrom, endTime: result.data.dateTimeTo, ...result.data, })
                     .where(eq(events.id, locals.session.event))

@@ -9,6 +9,8 @@
 
 	let newEvent = $state(data.event);
 	let hasEdits = $state(false);
+
+	let selectedType = $state<'days' | 'range'>('days');
 </script>
 
 <div class="relative flex h-screen items-stretch justify-center">
@@ -60,21 +62,45 @@
 			<div class="flex flex-col gap-4">
 				<h2 class="label">Availability</h2>
 				<div class="flex items-center gap-4">
-					<input class="radio" type="radio" value="days" name="availabilityType" />
+					<input
+						class="radio"
+						type="radio"
+						value="days"
+						name="availabilityType"
+						bind:group={selectedType}
+					/>
 					<label class="label" for="availabilityDays">Amount of Days</label>
 					<input
 						class="input input-sm"
+						value="7"
 						type="number"
 						placeholder="7 days"
 						name="availabilityDays"
+						disabled={selectedType != 'days'}
 					/>
 				</div>
 				<div class="flex items-center gap-4">
-					<input class="radio" type="radio" value="range" name="availabilityType" />
+					<input
+						class="radio"
+						type="radio"
+						value="range"
+						name="availabilityType"
+						bind:group={selectedType}
+					/>
 					<div class="label">Date Range</div>
-					<input class="input input-sm" type="date" name="availabilityFrom" />
+					<input
+						class="input input-sm"
+						type="date"
+						name="availabilityFrom"
+						disabled={selectedType != 'range'}
+					/>
 					<div>-</div>
-					<input class="input input-sm" type="date" name="availabilityTo" />
+					<input
+						class="input input-sm"
+						type="date"
+						name="availabilityTo"
+						disabled={selectedType != 'range'}
+					/>
 				</div>
 				<div class="flex justify-between">
 					{#each daysOfWeek as day}
