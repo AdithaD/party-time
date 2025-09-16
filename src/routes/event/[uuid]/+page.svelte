@@ -38,7 +38,7 @@
 	}
 </script>
 
-<div class="relative flex min-h-screen items-stretch justify-center space-x-8">
+<div class="relative flex min-h-screen items-stretch justify-center space-x-8 overflow-y-visible">
 	<div class="w-2/5 bg-base-100 p-16 shadow-2xl">
 		{#await data.event}
 			<div class="flex items-center justify-center">
@@ -54,7 +54,7 @@
 				</div>
 				<form method="POST" action="?/registerInterest">
 					<button class="btn {data.user.registered ? 'btn-error' : 'btn-primary'}" type="submit">
-						{data.user.registered ? 'Leave' : 'Register'}
+						{data.user.registered ? 'Unregister' : 'Register'}
 					</button>
 				</form>
 				<hr class="my-8" />
@@ -128,22 +128,27 @@
 						<p>{event.description}</p>
 					</div>
 					<div>
-						<h2 class="mb-2 font-semibold">Availablility</h2>
-						{#await getTimestamps(event.id) then timestamps}
-							<MultiDayAvailability
-								startDay={new Date()}
-								endDay={addDays(new Date(), 7)}
-								daysPerPage={5}
-								userId={data.user.id}
-								submitFn={(availabilities) =>
-									updateAvailiabilities({
-										user: data.user.id,
-										event: data.eventId,
-										availabilities
-									})}
-								{timestamps}
-							/>
-						{/await}
+						<div class="collapse border border-base-300 bg-base-100">
+							<input type="checkbox" />
+							<div class="collapse-title font-semibold">Availability</div>
+							<div class="collapse-content text-sm">
+								{#await getTimestamps(event.id) then timestamps}
+									<MultiDayAvailability
+										startDay={new Date()}
+										endDay={addDays(new Date(), 7)}
+										daysPerPage={5}
+										userId={data.user.id}
+										submitFn={(availabilities) =>
+											updateAvailiabilities({
+												user: data.user.id,
+												event: data.eventId,
+												availabilities
+											})}
+										{timestamps}
+									/>
+								{/await}
+							</div>
+						</div>
 					</div>
 				</div>
 			{/if}
