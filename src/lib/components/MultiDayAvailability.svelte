@@ -2,17 +2,17 @@
 	import { eachDayOfInterval } from 'date-fns';
 	import DayAvailability from './DayAvailability.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { saveAvailability } from './data.remote';
 
 	type Props = {
 		startDay: Date;
 		endDay: Date;
 		daysPerPage: number;
 		userId: string;
+		submitFn: (timestamps: number[]) => void;
 		timestamps: Map<number, string[]>;
 	};
 
-	let { startDay, endDay, daysPerPage, timestamps, userId }: Props = $props();
+	let { startDay, endDay, daysPerPage, timestamps, userId, submitFn }: Props = $props();
 
 	const days = eachDayOfInterval({ start: startDay, end: endDay });
 
@@ -62,8 +62,7 @@
 			/>
 		{/each}
 	</div>
-	<button
-		onclick={() => saveAvailability(selected.values().toArray())}
-		class="btn w-full btn-primary">Save Availablility</button
+	<button onclick={() => submitFn(selected.values().toArray())} class="btn w-full btn-primary"
+		>Save Availablility</button
 	>
 </div>

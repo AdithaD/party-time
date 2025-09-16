@@ -1,27 +1,26 @@
-import { command, getRequestEvent, query } from "$app/server";
+import { command, query } from "$app/server";
 import { db } from "$lib/server/db";
 import { availability } from "$lib/server/db/schema"
 import { eq } from "drizzle-orm";
 import { events } from "$lib/server/db/schema";
+import z from "zod";
+const saveAvailabilitySchema = z.object({
+    user: z.string(),
+    event: z.string(),
+    availabilities: z.array(z.number())
+});
 
-export const saveAvailability = command('unchecked', async (availabilities: number[]) => {
-    const request = getRequestEvent();
-    const user = request.locals.user!.id;
-
-    console.log(availabilities)
+export const saveAvailability = command(saveAvailabilitySchema, async ({ user, event, availabilities }: { user: string, event: string, availabilities: number[] }) => {
 
     await db.delete(availability).where(eq(availability.user, user))
     await db.insert(availability).values(
-        availabilities.map((a) => ({ user, timestamp: a }))
+        availabilities.map((a) => ({ user: user, timestamp: a }))
     );
 
-    getTimestamps().refresh();
+    getTimestamps(event).refresh();
 })
 
-export const getTimestamps = query(async () => {
-    const request = getRequestEvent();
-    const eventId = request.locals.session!.event;
-
+export const getTimestamps = query("unchecked", async (eventId: string) => {
     const event = await db.query.events.findFirst(
         {
             where: eq(events.id, eventId),

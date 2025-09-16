@@ -8,8 +8,7 @@ export const load = async ({ params, locals }) => {
     if (!uuid) error(400, 'malformed uuid');
 
     if (locals.session === null || locals.user === null) redirect(303, `/event/${uuid}/login`);
-
-    const event = await db.query.events.findFirst({
+    const event = db.query.events.findFirst({
         where: eq(events.id, uuid),
         with: {
             users: {
@@ -54,12 +53,9 @@ export const load = async ({ params, locals }) => {
                 }
             },
         }
-    })
+    }).execute();
 
-
-    if (!event) error(404, "Specified event not found.")
-
-    return { event, user: locals.user }
+    return { event, eventId: uuid, user: locals.user }
 };
 
 export const actions = {

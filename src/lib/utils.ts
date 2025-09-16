@@ -17,7 +17,6 @@ export function datetimeLocalToDate(datetimeLocal: string): Date {
 	const [year, month, day] = date.split('-').map((x) => parseInt(x));
 	const [hours, minutes] = time.split(':').map((x) => parseInt(x));
 
-	console.log(`${year}-${month - 1}-${day} ${hours}:${minutes}`)
 	return new Date(year, month - 1, day, hours, minutes);
 }
 

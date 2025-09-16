@@ -55,11 +55,9 @@ export const actions = {
             const session = await createSession(sessionToken, newUser.id, eventId);
             cookies.set('session', sessionToken, { path: `/`, httpOnly: true, sameSite: 'lax', expires: session.expiresAt })
 
-            console.log('new user created. redirecting.')
             redirect(303, `/event/${eventId}`)
         } else {
             const user = event.users[0];
-            console.log(event.users)
 
             if (user.passwordHash) {
                 if (!password || password.length == 0) return fail(403, "Incorrect password")
@@ -75,7 +73,6 @@ export const actions = {
             const sessionToken = generateSessionToken();
             const session = await createSession(sessionToken, user.id, eventId);
             cookies.set('session', sessionToken, { path: `/`, httpOnly: true, sameSite: 'lax', expires: session.expiresAt })
-            console.log('user found. redirecting.')
             redirect(303, `/event/${eventId}`)
         }
     },

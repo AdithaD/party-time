@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { dateToDatetimeLocalString } from '$lib/utils.js';
-	import { int } from 'drizzle-orm/mysql-core';
+	import z from 'zod';
 
-	let { data } = $props();
+	let { data, form } = $props();
 
 	let newEvent = $state(data.event);
 	let hasEdits = $state(false);
@@ -15,10 +15,12 @@
 			<div class="flex flex-col gap-3">
 				<label class="label" for="title">Title</label>
 				<input name="title" class="input w-full" bind:value={newEvent.title} />
+				<div class="text-error">{form?.zodError?.fieldErrors.title}</div>
 			</div>
 			<div class="flex flex-col gap-3">
 				<label class="label" for="location">Location</label>
 				<input class="input w-full" name="location" id="location" bind:value={newEvent.location} />
+				<div class="text-error">{form?.zodError?.fieldErrors.location}</div>
 			</div>
 			<div class="flex justify-between space-x-8">
 				<div class="flex flex-col gap-3">
@@ -32,6 +34,7 @@
 							? dateToDatetimeLocalString(data.event.scheduledTime)
 							: ''}
 					/>
+					<div class="text-error">{form?.zodError?.fieldErrors.dateTimeFrom}</div>
 				</div>
 				<div class="flex flex-col gap-3">
 					<label class="label" for="datetime-to">End Time</label>
@@ -42,15 +45,17 @@
 						id="datetime-to"
 						value={data.event.endTime ? dateToDatetimeLocalString(data.event.endTime) : ''}
 					/>
+					<div class="text-error">{form?.zodError?.fieldErrors.dateTimeTo}</div>
 				</div>
 			</div>
 			<div class="flex flex-col gap-3">
 				<label class="label" for="description">Description</label>
 				<textarea class="textarea w-full" name="description" bind:value={newEvent.description}
 				></textarea>
+				<div class="text-error">{form?.zodError?.fieldErrors.description}</div>
 			</div>
 			<div class="flex justify-between">
-				<a href={`/events/${data.event.id}`} class="btn btn-error">Cancel</a>
+				<a href={`/event/${data.eventId}`} class="btn btn-error">Cancel</a>
 				<button type="submit" class="btn btn-primary">Save Changes</button>
 			</div>
 		</form>

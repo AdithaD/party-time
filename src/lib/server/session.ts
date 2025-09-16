@@ -4,12 +4,12 @@ import { sha256 } from "@oslojs/crypto/sha2";
 
 import { sessions, users, type User } from "$lib/server/db/schema";
 import type { RequestEvent } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
-export async function validateSessionToken(token: string): Promise<SessionValidationResult> {
+export async function validateSessionToken(token: string, eventId: string): Promise<SessionValidationResult> {
     const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
     const session = await db.query.sessions.findFirst({
-        where: eq(sessions.id, sessionId),
+        where: and(eq(sessions.id, sessionId), eq(sessions.event, eventId)),
     })
 
     if (!session) {
