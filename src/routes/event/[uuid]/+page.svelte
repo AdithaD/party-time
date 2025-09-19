@@ -6,10 +6,17 @@
 	import MultiDayAvailability from '$lib/components/MultiDayAvailability.svelte';
 	import PollCreateForm from '$lib/components/PollCreateForm.svelte';
 	import Poll from '$lib/components/Poll.svelte';
+	import { onMount } from 'svelte';
 
 	let { data } = $props();
 
 	let postMode = $state<'none' | 'comment' | 'poll' | 'payment'>('none');
+
+	onMount(() => {
+		data.event.then((event) => {
+			document.title = `${event?.title ?? 'Event View'} | Party Time`;
+		});
+	});
 
 	const feedPromise = data.event.then((event) => {
 		if (!event) return [];
@@ -38,7 +45,12 @@
 	}
 </script>
 
-<div class="relative flex min-h-screen items-stretch justify-center space-x-8 overflow-y-visible">
+<svelte:head>
+	<title>Event View | Party Time</title>
+</svelte:head>
+<div
+	class="relative flex min-h-screen items-stretch justify-center space-x-8 overflow-y-visible bg-gradient-to-t from-base-100 to-base-200"
+>
 	<div class="w-2/5 bg-base-100 p-16 shadow-2xl">
 		{#await data.event}
 			<div class="flex items-center justify-center">
@@ -53,8 +65,11 @@
 					<a class="btn btn-neutral" href={`/event/${event.id}/edit`}>Edit</a>
 				</div>
 				<form method="POST" action="?/registerInterest">
-					<button class="btn {data.user.registered ? 'btn-error' : 'btn-primary'}" type="submit">
-						{data.user.registered ? 'Unregister' : 'Register'}
+					<button
+						class="btn {data.user.registered ? 'btn-outline btn-error' : 'btn-primary'} w-full"
+						type="submit"
+					>
+						{data.user.registered ? 'Leave Event' : 'Register'}
 					</button>
 				</form>
 				<hr class="my-8" />

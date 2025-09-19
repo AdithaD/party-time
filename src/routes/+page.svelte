@@ -2,6 +2,9 @@
 	import { enhance } from '$app/forms';
 </script>
 
+<svelte:head>
+	<title>Party Time</title>
+</svelte:head>
 <div class="flex min-h-screen flex-col bg-gradient-to-t from-base-100 to-base-200">
 	<div class="flex flex-grow flex-col items-center justify-center">
 		<div class="flex flex-col gap-8">
