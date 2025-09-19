@@ -11,7 +11,7 @@
 		daysPerPage: number;
 		userId: string;
 		submitFn: (timestamps: number[]) => void;
-		timestamps: Map<number, string[]>;
+		timestamps: Map<number, { id: string; name: string }[]>;
 	};
 
 	let { start, end, daysOfWeek, daysPerPage, timestamps, userId, submitFn }: Props = $props();
@@ -30,7 +30,7 @@
 		new SvelteSet(
 			timestamps
 				.entries()
-				.filter(([timestamp, users]) => users.includes(userId))
+				.filter(([timestamp, users]) => users.find((u) => u.id == userId) != undefined)
 				.map(([timestamp, user]) => timestamp)
 		)
 	);

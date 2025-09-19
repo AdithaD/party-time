@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { multipleNamesToString } from '$lib/utils';
 	import { addHours, format } from 'date-fns';
 	import { max } from 'drizzle-orm';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -9,7 +10,7 @@
 		endHour: number;
 		interval: number;
 		selected: SvelteSet<number>;
-		timestamps: Map<number, string[]>;
+		timestamps: Map<number, { id: string; name: string }[]>;
 		mouseMode: 'select' | 'deselect';
 		class: string;
 	};
@@ -49,6 +50,16 @@
 
 	function amountOfUsers(timestamp: number) {
 		return timestamps.get(getKey(timestamp))?.length ?? 0;
+	}
+
+	function getNameString(timestamp: number) {
+		const names = timestamps.get(getKey(timestamp))?.map((v) => v.name);
+
+		if (names) {
+			return multipleNamesToString(names, 3);
+		} else {
+			return '';
+		}
 	}
 
 	function getOpacity(timestamp: number) {
@@ -105,15 +116,17 @@
 <div class="flex flex-col space-y-1 {className}">
 	<div class="text-center wrap-break-word">{format(date, 'EEE dd MMM')}</div>
 	{#each Array(intervalCount).keys() as i}
-		<button
-			class="btn h-8 rounded-none {selected.has(getKey(i)) ? 'border-accent' : ''}"
-			style="background: oklch(70% 0.213 47.604 / {getOpacity(i)});"
-			onmouseover={(event) => onTimeMouseOver(i, event)}
-			onmousedown={(event) => onMouseDown(i, event)}
-			onfocus={() => {}}
-			onkeydown={(event) => onTimeKeyDown(i, event)}
-		>
-			{format(getTime(i), 'HH:mm')} ({amountOfUsers(i)})
-		</button>
+		<div class="tooltip" data-tip={getNameString(i)}>
+			<button
+				class="btn h-8 w-full rounded-none {selected.has(getKey(i)) ? 'border-accent' : ''}"
+				style="background: oklch(70% 0.213 47.604 / {getOpacity(i)});"
+				onmouseover={(event) => onTimeMouseOver(i, event)}
+				onmousedown={(event) => onMouseDown(i, event)}
+				onfocus={() => {}}
+				onkeydown={(event) => onTimeKeyDown(i, event)}
+			>
+				{format(getTime(i), 'HH:mm')} ({amountOfUsers(i)})
+			</button>
+		</div>
 	{/each}
 </div>

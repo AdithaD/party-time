@@ -26,6 +26,10 @@ export const getTimestamps = query("unchecked", async (eventId: string) => {
             where: eq(events.id, eventId),
             with: {
                 users: {
+                    columns: {
+                        id: true,
+                        name: true,
+                    },
                     with: {
                         availabilities: {
                             columns: {
@@ -41,12 +45,12 @@ export const getTimestamps = query("unchecked", async (eventId: string) => {
 
     const usersPerTimestamp = event!.users.reduce((acc, val) => {
         val.availabilities.forEach((av) => {
-            if (!acc.has(av.timestamp)) acc.set(av.timestamp, new Array<string>())
-            acc.get(av.timestamp)!.push(val.id)
+            if (!acc.has(av.timestamp)) acc.set(av.timestamp, new Array<{ id: string; name: string }>())
+            acc.get(av.timestamp)!.push({ id: val.id, name: val.name })
         })
 
         return acc
-    }, new Map<number, string[]>())
+    }, new Map<number, { id: string; name: string; }[]>())
 
     return usersPerTimestamp;
 });

@@ -77,3 +77,11 @@ export function getDaysInInterval(start: Date, end: Date, bitfield: number) {
 }
 
 export const ALL_DAYS = (1 << 7) - 1;
+
+export function multipleNamesToString(names: string[], cutoff: number) {
+	if (names.length > cutoff) {
+		return `${names.slice(0, cutoff).join(", ")} and ${names.length - cutoff} more`
+	} else {
+		return names.join(", ")
+	}
+}
