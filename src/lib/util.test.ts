@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { bitfieldToDaysOfWeek, daysOfWeekToBitfield, getDaysInInterval } from './utils';
+import { bitfieldToDaysOfWeek, daysOfWeek, daysOfWeekToBitfield, ALL_DAYS, getDaysInInterval } from './utils';
 import { eachDayOfInterval } from 'date-fns';
 
 test('utils: function daysOfWeekToBitfield: mon, wed, fri is 42', () => {
@@ -26,4 +26,8 @@ test('sun - sat, days of week 127', () => {
 
 
     expect(allDays).toStrictEqual(getDaysInInterval(start, end, bitfield));
+})
+
+test('full availability', () => {
+    expect(daysOfWeekToBitfield(new Set(daysOfWeek))).toBe(ALL_DAYS);
 })

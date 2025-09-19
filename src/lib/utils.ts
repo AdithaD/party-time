@@ -75,3 +75,5 @@ export function getDaysInInterval(start: Date, end: Date, bitfield: number) {
 		return (bitfield & mask) == mask
 	});
 }
+
+export const ALL_DAYS = (1 << 7) - 1;

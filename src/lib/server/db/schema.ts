@@ -1,4 +1,4 @@
-import type { EventAvailability } from '$lib/utils';
+import { ALL_DAYS, type EventAvailability } from '$lib/utils';
 import { addDays } from 'date-fns';
 import { relations } from 'drizzle-orm';
 import { sqliteTable, integer, text, primaryKey } from 'drizzle-orm/sqlite-core';
@@ -10,11 +10,10 @@ export const events = sqliteTable('events', {
 	endTime: integer('end_time', { mode: 'timestamp' }),
 	description: text('description'),
 	location: text('location'),
-
 	availability: text('availability', { mode: 'json' }).$type<EventAvailability>().default({
 		start: new Date(),
 		end: addDays(new Date(), 7),
-		daysOfWeek: 1 << 7 - 1,
+		daysOfWeek: ALL_DAYS,
 	}).notNull(),
 });
 
