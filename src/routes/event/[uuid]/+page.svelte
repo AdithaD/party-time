@@ -169,8 +169,12 @@
 		{/await}
 	</div>
 	<div class="flex w-1/3 flex-col bg-base-100 p-16 shadow-2xl">
-		<h2 class="mb-4 text-2xl font-bold">Posts</h2>
-		{#await feedPromise then feed}
+		<h2 class="mb-4 text-2xl font-bold">Feed</h2>
+		{#await feedPromise}
+			<div class="flex items-center justify-center">
+				<div class="loading loading-ring"></div>
+			</div>
+		{:then feed}
 			<div class="flex-grow space-y-4 overflow-y-auto">
 				{#each feed as item}
 					{#if 'comment' in item}
@@ -180,22 +184,30 @@
 					{/if}
 				{/each}
 			</div>
-			<hr class="my-8" />
-			{#if postMode == 'none'}
-				<div class="flex justify-center space-x-4">
-					<button class="btn btn-neutral" onclick={() => (postMode = 'comment')}>+ Comment</button>
-					<button class="btn btn-neutral" onclick={() => (postMode = 'poll')}>+ Poll</button>
-					<button class="btn btn-neutral" onclick={() => (postMode = 'payment')}>+ Payment</button>
-				</div>
-			{:else if postMode == 'comment'}
-				<form class="flex flex-col items-stretch space-y-4" method="POST" action="?/postComment">
-					<input name="event" value={data.eventId} hidden />
-					<textarea class="textarea w-full" name="comment"></textarea>
-					<button class="btn w-full text-start btn-primary" type="submit">Post Comment</button>
-				</form>
-			{:else if postMode == 'poll'}
-				<PollCreateForm eventId={data.eventId}></PollCreateForm>
-			{:else}{/if}
 		{/await}
+		<hr class="my-8" />
+		{#if postMode == 'none'}
+			<div class="flex justify-center space-x-4">
+				<button class="btn btn-neutral" onclick={() => (postMode = 'comment')}>+ Comment</button>
+				<button class="btn btn-neutral" onclick={() => (postMode = 'poll')}>+ Poll</button>
+				<button class="btn btn-neutral" onclick={() => (postMode = 'payment')}>+ Payment</button>
+			</div>
+		{:else if postMode == 'comment'}
+			<form class="flex flex-col items-stretch space-y-4" method="POST" action="?/postComment">
+				<input name="event" value={data.eventId} hidden />
+				<textarea class="textarea w-full" name="comment"></textarea>
+				<div class="flex gap-4">
+					<button class="btn mb-4 w-min flex-1/4 btn-neutral" onclick={() => (postMode = 'none')}>
+						Cancel
+					</button>
+					<button class="btn w-full flex-3/4 text-start btn-primary" type="submit">
+						Post Comment
+					</button>
+				</div>
+			</form>
+		{:else if postMode == 'poll'}
+			<PollCreateForm eventId={data.eventId} onCancelForm={() => (postMode = 'none')}
+			></PollCreateForm>
+		{:else}{/if}
 	</div>
 </div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	let { eventId }: { eventId: string } = $props();
+	let { eventId, onCancelForm }: { eventId: string; onCancelForm(): void } = $props();
 
 	let id = $props.id();
 	let optionCount = $state(2);
@@ -24,5 +24,8 @@
 			class="input w-full"
 		/>
 	{/each}
-	<button class="btn w-full btn-primary" type="submit">Post Poll</button>
+	<div class="mt-4 flex gap-4">
+		<button class="btn mb-4 w-min flex-1/4 btn-neutral" onclick={onCancelForm}> Cancel </button>
+		<button class="btn flex-3/4 btn-primary" type="submit">Post Poll</button>
+	</div>
 </form>

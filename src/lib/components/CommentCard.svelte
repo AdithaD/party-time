@@ -5,8 +5,8 @@
 	let { comment }: { comment: Comment & { user: { name: string } } } = $props();
 </script>
 
-<div class="card w-full bg-base-200 shadow-sm card-sm">
-	<div class="card-body">
+<div class="chat-end chat shadow-sm card-sm">
+	<div class="chat-bubble">
 		<div class="flex items-baseline gap-4">
 			<h2 class="card-title">{comment.user.name}</h2>
 			<div class="text-neutral">
