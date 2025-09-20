@@ -15,7 +15,7 @@
 
 <div class="relative flex h-screen items-stretch justify-center">
 	<div class="w-1/2 bg-base-100 p-16 shadow-2xl">
-		<form class="space-y-4" method="POST" onchange={() => (hasEdits = true)}>
+		<form class="space-y-4" action="?/edit" method="POST" onchange={() => (hasEdits = true)}>
 			<input name="event" value={data.event.id} hidden />
 			<div class="flex flex-col gap-3">
 				<label class="label" for="title">Title</label>
@@ -27,7 +27,7 @@
 				<input class="input w-full" name="location" id="location" bind:value={newEvent.location} />
 				<div class="text-error">{form?.zodError?.fieldErrors.location}</div>
 			</div>
-			<div class="flex justify-between space-x-8">
+			<div class="flex flex-col justify-between space-x-8 xl:flex-row">
 				<div class="flex flex-col gap-3">
 					<label class="label" for="datetime-from">Start Time</label>
 					<input
@@ -79,7 +79,7 @@
 						disabled={selectedType != 'days'}
 					/>
 				</div>
-				<div class="flex items-center gap-4">
+				<div class="items-center gap-4 lg:flex">
 					<input
 						class="radio"
 						type="radio"
@@ -102,10 +102,12 @@
 						disabled={selectedType != 'range'}
 					/>
 				</div>
-				<div class="flex justify-between">
+				<div
+					class="grid grid-cols-4 grid-rows-2 justify-between gap-4 2xl:grid-cols-7 2xl:grid-rows-1"
+				>
 					{#each daysOfWeek as day}
 						<div
-							class="flex items-center-safe space-x-4 rounded-box border border-neutral transition-colors hover:border-primary
+							class="items-center-safe rounded-box border border-neutral transition-colors hover:border-primary
 							{selectedDaysOfWeek.includes(day) ? 'border-primary ' : ''}"
 						>
 							<input
@@ -117,7 +119,9 @@
 								bind:group={selectedDaysOfWeek}
 								hidden
 							/>
-							<label for="day-{day}" class="label px-4 py-2 text-xs text-white capitalize"
+							<label
+								for="day-{day}"
+								class="label w-full px-4 py-2 text-center text-xs text-white capitalize"
 								>{day}</label
 							>
 						</div>
@@ -151,6 +155,7 @@
 			<div class="divider my-8"></div>
 			<div class="flex justify-between">
 				<a href={`/event/${data.eventId}`} class="btn btn-error">Cancel</a>
+				<button formaction="?/deleteEvent" class="btn btn-outline btn-error">Delete</button>
 				<button type="submit" class="btn btn-primary">Save Changes</button>
 			</div>
 		</form>

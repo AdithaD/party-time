@@ -45,7 +45,7 @@ const eventEditSchema = z.object({
 });
 
 export const actions = {
-    default: async ({ request, locals, params }) => {
+    edit: async ({ request, locals, params }) => {
         const data = await request.formData();
 
         if (locals.user === null || locals.session === null) redirect(303, `/event/${params.uuid}/login`)
@@ -77,6 +77,13 @@ export const actions = {
             )
         }
     },
+    deleteEvent: async ({ locals, params }) => {
+        if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+
+        await db.delete(events).where(eq(events.id, locals.session.event));
+
+        redirect(303, '/')
+    }
 }
 
 export const load = async ({ params, locals }) => {

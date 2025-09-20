@@ -178,5 +178,5 @@ export const actions = {
         if (result.rowsAffected < 1) {
             return fail(400, "Couldn't find specified resource.")
         }
-    }
+    },
 };
