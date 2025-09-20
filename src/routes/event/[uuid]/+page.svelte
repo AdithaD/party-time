@@ -49,7 +49,7 @@
 	<title>Event View | Party Time</title>
 </svelte:head>
 <div
-	class="relative flex min-h-screen items-stretch justify-center space-x-8 overflow-y-visible bg-gradient-to-t from-base-100 to-base-200"
+	class="relative flex min-h-screen items-stretch justify-center space-x-8 overflow-hidden bg-gradient-to-t from-base-100 to-base-200"
 >
 	<div class="w-2/5 bg-base-100 p-16 shadow-2xl">
 		{#await data.event}
@@ -168,14 +168,14 @@
 			{/if}
 		{/await}
 	</div>
-	<div class="flex w-1/3 flex-col bg-base-100 p-16 shadow-2xl">
-		<h2 class="mb-4 text-2xl font-bold">Feed</h2>
+	<div class="flex max-h-screen w-1/3 flex-col bg-base-100 p-16 shadow-2xl">
+		<h2 class="mb-4 text-2xl font-bold shadow-xl">Feed</h2>
 		{#await feedPromise}
 			<div class="flex items-center justify-center">
 				<div class="loading loading-ring"></div>
 			</div>
 		{:then feed}
-			<div class="flex-grow space-y-4 overflow-y-auto">
+			<div class="flex-grow space-y-4 overflow-y-scroll" style="scrollbar">
 				{#each feed as item}
 					{#if 'comment' in item}
 						<CommentCard comment={item.comment}></CommentCard>
