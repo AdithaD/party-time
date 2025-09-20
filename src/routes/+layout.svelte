@@ -3,6 +3,7 @@
 	import appleTouchIcon from '$lib/assets/apple-touch-icon.png';
 	import favicon32 from '$lib/assets/favicon-32x32.png';
 	import favicon16 from '$lib/assets/favicon-16x16.png';
+	import { Toaster } from 'svelte-french-toast';
 
 	let { children } = $props();
 
@@ -17,3 +18,4 @@
 <main class="relative min-h-screen bg-base-200">
 	{@render children?.()}
 </main>
+<Toaster />

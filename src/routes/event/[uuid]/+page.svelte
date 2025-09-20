@@ -5,7 +5,8 @@
 	import MultiDayAvailability from '$lib/components/MultiDayAvailability.svelte';
 	import PollCreateForm from '$lib/components/PollCreateForm.svelte';
 	import Poll from '$lib/components/Poll.svelte';
-	import { onMount } from 'svelte';
+	import { page } from '$app/state';
+	import toast from 'svelte-french-toast';
 
 	let { data } = $props();
 	const { event } = data;
@@ -22,6 +23,16 @@
 	function stringIfNotEmptyOrNull(string: string | null, fallback: string) {
 		if (string && string.length > 0) return string;
 		else return fallback;
+	}
+
+	async function copyLink() {
+		await navigator.clipboard.writeText(
+			`${page.url.protocol}://${page.url.host}/event/${page.params.uuid}`
+		);
+		toast.success('Copied link to clipboard!', {
+			style: 'background: oklch(21% 0.006 56.043); color:white;',
+			position: 'bottom-center'
+		});
 	}
 </script>
 
@@ -46,7 +57,10 @@
 			{:else}
 				<div class="mb-4 flex justify-between">
 					<h1 class="text-4xl font-bold">{event.title}</h1>
-					<a class="btn btn-neutral" href={`/event/${event.id}/edit`}>Edit</a>
+					<div class="flex gap-2">
+						<button class="btn btn-neutral" onclick={copyLink}>Copy Link</button>
+						<a class="btn btn-neutral" href={`/event/${event.id}/edit`}>Edit</a>
+					</div>
 				</div>
 				<form method="POST" action="?/registerInterest">
 					<button
