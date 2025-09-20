@@ -1,6 +1,7 @@
 import { db } from '$lib/server/db/index.js';
 import { events } from '$lib/server/db/schema';
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
+import z from 'zod';
 
 export const actions = {
     default: async ({ request }) => {
@@ -8,14 +9,12 @@ export const actions = {
 
         const formData = await request.formData();
 
-        const title = formData.get('title');
-        if (typeof title !== 'string' || title.length === 0) {
-            return { error: 'Title is required' };
-        }
+        const parsedFormData = z.string().min(1).max(50).safeParse(formData.get('title'));
+        if (!parsedFormData.success) return fail(400, parsedFormData.error.message)
 
         await db.insert(events).values({
             id: uuid,
-            title,
+            title: parsedFormData.data,
         });
 
         redirect(303, `/event/${uuid}`); // Redirect to the new event page

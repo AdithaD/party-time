@@ -72,38 +72,25 @@ const updateVoteSchema = z.object({
 
 export const actions = {
     postComment: async ({ request, locals, params }) => {
-        const eventId = params.uuid;
-        if (!eventId || typeof eventId != 'string') {
-            return fail(400, "Invalid event id.")
-        }
+        if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+        if (locals.session.event != params.uuid) redirect(303, `/event/${params.uuid}/login`);
 
-        if (locals.user === null || locals.session === null) {
-            redirect(303, `/event/${eventId}/login`)
-        }
-
-        const data = await request.formData();
-
-        const comment = data.get('comment');
-
-        if (!comment || typeof comment !== 'string') {
-            return fail(400, "Missing comment.")
-        }
+        const formData = await request.formData();
+        const comment = z.string().max(1000).safeParse(formData.get('comment'));
+        if (!comment.success) return fail(400, "Invalid comment.")
 
         await db.insert(comments).values({
             user: locals.user.id,
             createdAt: new Date(),
-            event: eventId,
-            text: comment,
+            event: params.uuid,
+            text: comment.data,
         })
     },
     postPoll: async ({ request, locals, params }) => {
-        if (!locals.user) redirect(303, `/event/${params.uuid}/login`);
+        if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+        if (locals.session.event != params.uuid) redirect(303, `/event/${params.uuid}/login`);
 
         const data = await request.formData();
-        const eventId = data.get('event');
-        if (!eventId || typeof eventId != 'string') {
-            return fail(400, "Invalid event id.")
-        }
 
         const pollData = postPollSchema.safeParse({
             title: data.get('title'),
@@ -111,7 +98,7 @@ export const actions = {
         });
 
         if (pollData.success) {
-            const poll = (await db.insert(polls).values({ event: eventId, title: pollData.data.title, createdAt: new Date() }).returning()).at(0);
+            const poll = (await db.insert(polls).values({ event: locals.session.event, title: pollData.data.title, createdAt: new Date() }).returning()).at(0);
             if (!poll) error(500, "Failed to insert poll into database.")
             await db.insert(pollOptions).values(pollData.data.options.map((value) => { return { poll: poll.id, value } }))
         } else {
@@ -120,6 +107,8 @@ export const actions = {
     },
     updateVote: async ({ request, locals, params }) => {
         if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+        if (locals.session.event != params.uuid) redirect(303, `/event/${params.uuid}/login`);
+
 
         const formData = await request.formData();
         const validationResult = updateVoteSchema.safeParse({ pollOption: formData.get('pollOption'), poll: formData.get('poll') });
@@ -144,19 +133,20 @@ export const actions = {
         })
     },
     registerInterest: async ({ locals, params }) => {
-        if (!locals.user) redirect(303, `/event/${params.uuid}/login`);
+        if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+        if (locals.session.event != params.uuid) redirect(303, `/event/${params.uuid}/login`);
+
         const user = await db.update(users).set({ registered: !locals.user.registered }).where(eq(users.id, locals.user.id)).returning();
 
         locals.user = user[0];
     },
     deleteComment: async ({ locals, params, request }) => {
         if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+        if (locals.session.event != params.uuid) redirect(303, `/event/${params.uuid}/login`);
 
         const data = await request.formData();
         const parseResult = z.coerce.number().positive().safeParse(data.get('id'));
-        console.log(parseResult)
         if (!parseResult.success) return fail(400, "Invalid id");
-
         const id = parseResult.data;
 
         const result = await db.delete(comments).where(and(eq(comments.id, id), eq(comments.event, locals.session.event)));
@@ -166,6 +156,7 @@ export const actions = {
     },
     deletePoll: async ({ locals, params, request }) => {
         if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+        if (locals.session.event != params.uuid) redirect(303, `/event/${params.uuid}/login`);
 
         const data = await request.formData();
         const parseResult = z.coerce.number().positive().safeParse(data.get('id'));

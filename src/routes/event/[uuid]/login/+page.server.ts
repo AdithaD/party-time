@@ -6,29 +6,23 @@ import { constantTimeEqual } from "@oslojs/crypto/subtle";
 import { fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import * as crypto from "node:crypto";
+import z from "zod";
+
+const userDataSchema = z.object({
+    name: z.string().min(1).max(30),
+    password: z.string().min(1).max(30).optional(),
+});
 
 export const actions = {
     default: async ({ request, cookies, params }) => {
         const eventId = params.uuid;
         const formData = await request.formData();
 
-        const name = formData.get('name');
-        const password = formData.get('password') as string;
+        const parseResult = userDataSchema.safeParse({ name: formData.get('name'), password: formData.get('password') });
 
-        if (typeof name !== "string" || typeof password !== "string") {
-            return fail(400, {
-                message: "Invalid or missing fields",
-                email: ""
-            });
-        }
+        if (!parseResult.success) return fail(400, parseResult.error.message)
 
-        if (name === "") {
-            return fail(400, {
-                message: "Please enter your username and password.",
-                username: name
-            });
-        }
-
+        const { name, password } = parseResult.data;
 
         const event = await db.query.events.findFirst({
             where: eq(events.id, eventId),
@@ -41,13 +35,17 @@ export const actions = {
         });
 
         if (!event) {
-            return fail(400, "Event does not exist.")
+            return fail(404, { messasge: "Event does not exist." })
         }
 
-        if (!event.users || event.users.length == 0) {
+        if (event.users.length == 0) {
             // Register the user.
             const id = crypto.randomBytes(10).toString('hex');
-            const passwordHash = password.length > 0 ? await hashPassword(password) : null;
+
+            let passwordHash: string | undefined = undefined;
+            if (password && password.length > 0) {
+                passwordHash = await hashPassword(password);
+            }
 
             const newUser = (await db.insert(users).values({ id, name, passwordHash, event: eventId }).returning())[0]
 
@@ -60,7 +58,7 @@ export const actions = {
             const user = event.users[0];
 
             if (user.passwordHash) {
-                if (!password || password.length == 0) return fail(403, "Incorrect password")
+                if (!password || password.length == 0) return fail(403, { message: "Incorrect password" })
 
                 const passwordHash = await hashPassword(password);
                 const userHash = new TextEncoder().encode(passwordHash);
