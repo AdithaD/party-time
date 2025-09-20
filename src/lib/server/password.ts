@@ -1,6 +1,6 @@
 import { hash, verify } from "@node-rs/argon2";
 
-export async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string | Uint8Array): Promise<string> {
     return await hash(password, {
         memoryCost: 19456,
         timeCost: 2,

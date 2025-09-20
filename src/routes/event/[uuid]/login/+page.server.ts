@@ -2,7 +2,7 @@ import { db } from "$lib/server/db/index.js";
 import { events, users } from "$lib/server/db/schema.js";
 import { hashPassword } from "$lib/server/password.js";
 import { createSession, generateSessionToken } from "$lib/server/session.js";
-import { constantTimeEqual } from "@oslojs/crypto/subtle";
+import { verify } from "@node-rs/argon2";
 import { fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import * as crypto from "node:crypto";
@@ -44,10 +44,10 @@ export const actions = {
             const id = crypto.randomBytes(10).toString('hex');
 
             let passwordHash: string | undefined = undefined;
-            if (password && password.length > 0) {
+            if (password !== undefined && password.length > 0) {
                 passwordHash = await hashPassword(password);
             }
-
+            console.log(`hashed ${password} to ${passwordHash}`)
             const newUser = (await db.insert(users).values({ id, name, passwordHash, event: eventId }).returning())[0]
 
             const sessionToken = generateSessionToken();
@@ -58,16 +58,13 @@ export const actions = {
         } else {
             const user = event.users[0];
 
+
             if (user.passwordHash) {
-                if (!password || password.length == 0) return fail(403, { message: "Incorrect password" })
+                if (password == undefined || password.length == 0) return fail(403, { message: "Incorrect password" })
 
-                const passwordHash = await hashPassword(password);
-                const userHash = new TextEncoder().encode(passwordHash);
-                const dbHash = new TextEncoder().encode(user.passwordHash);
+                const validPassword = await verify(user.passwordHash, password);
 
-                if (!constantTimeEqual(userHash, dbHash)) {
-                    return fail(403, "Incorrect password")
-                }
+                if (!validPassword) return fail(403, "Invalid password");
             }
             const sessionToken = generateSessionToken();
             const session = await createSession(sessionToken, user.id, eventId);
