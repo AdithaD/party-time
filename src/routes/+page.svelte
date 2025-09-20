@@ -4,6 +4,11 @@
 
 <svelte:head>
 	<title>Party Time</title>
+	<meta
+		name="description"
+		content="Party Time makes it easy to create a shareable event planning page where friends can add
+					their availability, keep up with updates, and vote on polls."
+	/>
 </svelte:head>
 <div class="flex min-h-screen flex-col bg-gradient-to-t from-base-100 to-base-200">
 	<div class="flex flex-grow flex-col items-center justify-center">
@@ -17,7 +22,7 @@
 				</p>
 
 				<form class="flex flex-col justify-center gap-4 sm:flex-row" method="POST">
-					<label for="event-name" class="sr-only">Event Name</label>
+					<label for="title" class="sr-only">Event Name</label>
 					<input
 						type="text"
 						id="title"

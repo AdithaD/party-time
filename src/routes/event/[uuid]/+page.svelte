@@ -1,36 +1,16 @@
 <script lang="ts">
-	import { addDays } from 'date-fns';
 	import CommentCard from '../../../lib/components/CommentCard.svelte';
 
-	import { getTimestamps, saveAvailability as updateAvailiabilities } from './data.remote';
+	import { getFeed, getTimestamps, saveAvailability as updateAvailiabilities } from './data.remote';
 	import MultiDayAvailability from '$lib/components/MultiDayAvailability.svelte';
 	import PollCreateForm from '$lib/components/PollCreateForm.svelte';
 	import Poll from '$lib/components/Poll.svelte';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
+	const { event } = data;
 
 	let postMode = $state<'none' | 'comment' | 'poll' | 'payment'>('none');
-
-	onMount(() => {
-		data.event.then((event) => {
-			document.title = `${event?.title ?? 'Event View'} | Party Time`;
-		});
-	});
-
-	const feedPromise = data.event.then((event) => {
-		if (!event) return [];
-		return [
-			...event.comments.map((comment) => ({
-				comment: comment,
-				time: comment.createdAt
-			})),
-			...event.polls.map((poll) => ({
-				poll: poll,
-				time: poll.createdAt
-			}))
-		].sort((a, b) => b.time.getTime() - a.time.getTime());
-	});
 
 	function getRegisteredUserString(users: { name: string; registered: boolean }[]) {
 		const registeredUsers = users.filter((u) => u.registered);
@@ -46,7 +26,11 @@
 </script>
 
 <svelte:head>
-	<title>Event View | Party Time</title>
+	<title>{event.title} | Party Time</title>
+	<meta
+		name="description"
+		content="View and edit the event data for {event.title}. Insert comments, vote on polls and submit availabilities."
+	/>
 </svelte:head>
 <div
 	class="relative flex min-h-screen items-stretch justify-center space-x-8 overflow-hidden bg-gradient-to-t from-base-100 to-base-200"
@@ -144,7 +128,7 @@
 					</div>
 					<div>
 						<div class="collapse border border-base-300 bg-base-100">
-							<input type="checkbox" />
+							<input type="checkbox" name="availability-collapse" />
 							<div class="collapse-title font-semibold">Availability</div>
 							<div class="collapse-content text-sm">
 								{#await getTimestamps(event.id) then timestamps}
@@ -170,7 +154,7 @@
 	</div>
 	<div class="flex max-h-screen w-1/3 flex-col bg-base-100 p-16 shadow-2xl">
 		<h2 class="mb-4 text-2xl font-bold shadow-xl">Feed</h2>
-		{#await feedPromise}
+		{#await getFeed(event.id)}
 			<div class="flex items-center justify-center">
 				<div class="loading loading-ring"></div>
 			</div>

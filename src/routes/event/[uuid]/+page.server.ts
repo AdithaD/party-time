@@ -9,7 +9,7 @@ export const load = async ({ params, locals }) => {
     if (!uuid) error(400, 'malformed uuid');
 
     if (locals.session === null || locals.user === null) redirect(303, `/event/${uuid}/login`);
-    const event = db.query.events.findFirst({
+    const event = await db.query.events.findFirst({
         where: eq(events.id, uuid),
         with: {
             users: {
@@ -17,44 +17,12 @@ export const load = async ({ params, locals }) => {
                     id: true,
                     name: true,
                     registered: true,
-                },
-                with: {
-                    availabilities: {
-                        columns: {
-                            timestamp: true,
-                        }
-                    }
                 }
-            },
-            comments: {
-                with: {
-                    user: {
-                        columns: {
-                            name: true,
-                        }
-                    }
-                }
-            },
-            polls: {
-                with: {
-                    pollOptions: {
-                        with: {
-                            votes: {
-                                with: {
-                                    user: {
-                                        columns: {
-                                            id: true,
-                                            name: true,
-                                        }
-                                    }
-                                }
-                            },
-                        }
-                    }
-                }
-            },
+            }
         }
-    }).execute();
+    });
+
+    if (!event) error(404, "Event could not be found");
 
     return { event, eventId: uuid, user: locals.user }
 };

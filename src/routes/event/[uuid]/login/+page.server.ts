@@ -10,7 +10,7 @@ import z from "zod";
 
 const userDataSchema = z.object({
     name: z.string().min(1).max(30),
-    password: z.string().min(1).max(30).optional(),
+    password: z.string().max(30).optional(),
 });
 
 export const actions = {
@@ -20,6 +20,7 @@ export const actions = {
 
         const parseResult = userDataSchema.safeParse({ name: formData.get('name'), password: formData.get('password') });
 
+        console.log(parseResult)
         if (!parseResult.success) return fail(400, parseResult.error.message)
 
         const { name, password } = parseResult.data;
@@ -35,7 +36,7 @@ export const actions = {
         });
 
         if (!event) {
-            return fail(404, { messasge: "Event does not exist." })
+            return redirect(303, "/")
         }
 
         if (event.users.length == 0) {

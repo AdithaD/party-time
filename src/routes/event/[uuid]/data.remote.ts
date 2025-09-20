@@ -4,6 +4,7 @@ import { availability } from "$lib/server/db/schema"
 import { eq } from "drizzle-orm";
 import { events } from "$lib/server/db/schema";
 import z from "zod";
+import { error } from "@sveltejs/kit";
 const saveAvailabilitySchema = z.object({
     user: z.string(),
     event: z.string(),
@@ -20,7 +21,51 @@ export const saveAvailability = command(saveAvailabilitySchema, async ({ user, e
     getTimestamps(event).refresh();
 })
 
-export const getTimestamps = query("unchecked", async (eventId: string) => {
+export const getFeed = query(z.string(), async (eventId: string) => {
+    const rawFeed = await db.query.events.findFirst({
+        where: eq(events.id, eventId),
+        with: {
+            comments: {
+                with: {
+                    user: {
+                        columns: {
+                            name: true,
+                        }
+                    }
+                }
+            },
+            polls: {
+                with: {
+                    pollOptions: {
+                        with: {
+                            votes: {
+                                with: {
+                                    user: {
+                                        columns: {
+                                            id: true,
+                                            name: true,
+                                        }
+                                    }
+                                }
+                            },
+                        }
+                    }
+                }
+            },
+        }
+    });
+
+    if (!rawFeed) error(500, "Couldn't get event feed")
+
+    const feed = [
+        ...rawFeed.comments.map((c) => ({ comment: c, createdAt: c.createdAt, })),
+        ...rawFeed.polls.map((p) => ({ poll: p, createdAt: p.createdAt }))]
+        .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+
+    return feed;
+});
+
+export const getTimestamps = query(z.string(), async (eventId: string) => {
     const event = await db.query.events.findFirst(
         {
             where: eq(events.id, eventId),

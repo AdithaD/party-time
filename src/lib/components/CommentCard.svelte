@@ -17,12 +17,12 @@
 			{comment.text}
 		</p>
 		<div
-			class="absolute right-1 -bottom-2 opacity-0 transition-all group-hover:visible group-hover:opacity-100"
+			class="	focus-within :opacity-100 absolute right-1 -bottom-2 opacity-0 transition-all group-hover:opacity-100"
 		>
 			<div class="flex justify-end">
 				<form method="POST" action="?/deleteComment">
 					<input hidden value={comment.id} name="id" />
-					<button class="btn btn-xs">delete</button>
+					<button class="btn btn-xs" tabindex="0">delete</button>
 				</form>
 			</div>
 		</div>
