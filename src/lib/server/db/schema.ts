@@ -1,8 +1,9 @@
-import { ALL_DAYS, type EventAvailability } from '$lib/utils';
+import { type EventAvailability } from '$lib/utils';
 import { addDays } from 'date-fns';
 import { relations } from 'drizzle-orm';
 import { sqliteTable, integer, text, primaryKey } from 'drizzle-orm/sqlite-core';
 
+export const ALL_DAYS = (1 << 7) - 1;
 export const events = sqliteTable('events', {
 	id: text('id').primaryKey(),
 	title: text('title').notNull(),
