@@ -6,8 +6,7 @@
 	<title>Party Time</title>
 	<meta
 		name="description"
-		content="Party Time makes it easy to create a shareable event planning page where friends can add
-					their availability, keep up with updates, and vote on polls."
+		content="Party Time makes it easy to create a shareable event planning page where friends can add their availability, keep up with updates, and vote on polls."
 	/>
 </svelte:head>
 <div class="flex min-h-screen flex-col bg-gradient-to-t from-base-100 to-base-200">

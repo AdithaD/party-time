@@ -59,11 +59,15 @@ export const actions = {
         if (locals.session.event != params.uuid) redirect(303, `/event/${params.uuid}/login`);
 
         const data = await request.formData();
-
-        const pollData = postPollSchema.safeParse({
+        const object = {
             title: data.get('title'),
-            options: data.getAll('options')
-        });
+            options: data.getAll('option')
+        };
+        console.log(object)
+
+        const pollData = postPollSchema.safeParse(object);
+
+        console.log(pollData)
 
         if (pollData.success) {
             const poll = (await db.insert(polls).values({ event: locals.session.event, title: pollData.data.title, createdAt: new Date() }).returning()).at(0);
