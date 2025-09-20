@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { eachDayOfInterval, getDay } from 'date-fns';
 	import DayAvailability from './DayAvailability.svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { getDaysInInterval } from '$lib/utils';

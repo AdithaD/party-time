@@ -38,6 +38,15 @@ export const daysOfWeek = [
 	'saturday',
 ] as const;
 
+export const minifiedDaysOfWeek = [
+	'S', 'M', 'T', 'W', 'T', 'F', 'S'
+] as const;
+
+export function minifyDayOfWeek(day: DaysOfWeek) {
+	const index = daysOfWeek.findIndex((v) => v == day)
+	return minifiedDaysOfWeek[index]
+}
+
 export type DaysOfWeek = typeof daysOfWeek[number];
 
 export type EventAvailability = {

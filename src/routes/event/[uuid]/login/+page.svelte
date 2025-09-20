@@ -11,7 +11,10 @@
 </svelte:head>
 
 <div class="flex h-screen items-center justify-center bg-gradient-to-t from-base-100 to-base-200">
-	<form method="POST" class="flex w-1/3 flex-col gap-2 rounded-xl bg-base-100 p-10 shadow-md">
+	<form
+		method="POST"
+		class="m-4 flex flex-grow flex-col gap-2 rounded-xl bg-base-100 p-10 shadow-md xl:w-1/3"
+	>
 		<h1 class="text-2xl font-bold">Who are you?</h1>
 		<label class="label" for="name">Name</label>
 		<input id="name" name="name" class="input w-full" />

@@ -118,7 +118,9 @@
 	{#each Array(intervalCount).keys() as i}
 		<div class="tooltip" data-tip={getNameString(i)}>
 			<button
-				class="btn h-8 w-full rounded-none {selected.has(getKey(i)) ? 'border-accent' : ''}"
+				class="btn h-8 w-full rounded-none {selected.has(getKey(i))
+					? 'border-accent'
+					: ''} text-xs lg:text-sm"
 				style="background: oklch(70% 0.213 47.604 / {getOpacity(i)});"
 				onmouseover={(event) => onTimeMouseOver(i, event)}
 				onmousedown={(event) => onMouseDown(i, event)}

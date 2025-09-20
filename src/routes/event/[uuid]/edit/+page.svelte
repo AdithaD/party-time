@@ -1,5 +1,10 @@
 <script lang="ts">
-	import { bitfieldToDaysOfWeek, dateToDatetimeLocalString, daysOfWeek } from '$lib/utils.js';
+	import {
+		bitfieldToDaysOfWeek,
+		dateToDatetimeLocalString,
+		daysOfWeek,
+		minifyDayOfWeek
+	} from '$lib/utils.js';
 	import { Checkbox, Label } from 'bits-ui';
 	import { format } from 'date-fns';
 
@@ -18,7 +23,7 @@
 </script>
 
 <div class="relative flex min-h-screen items-stretch justify-center">
-	<div class="w-1/2 bg-base-100 p-16 shadow-2xl">
+	<div class="w-full bg-base-100 p-16 shadow-2xl xl:w-1/2">
 		<form class="space-y-4" action="?/edit" method="POST" onchange={() => (hasEdits = true)}>
 			<input name="event" value={data.event.id} hidden />
 			<div class="flex flex-col gap-3">
@@ -31,7 +36,7 @@
 				<input id="location" class="input w-full" name="location" bind:value={newEvent.location} />
 				<div class="text-error">{form?.zodError?.fieldErrors.location}</div>
 			</div>
-			<div class="flex flex-col justify-between space-x-8 xl:flex-row">
+			<div class="flex flex-col justify-between xl:flex-row xl:space-x-8">
 				<div class="flex flex-col gap-3">
 					<label class="label" for="datetime-from">Start Time</label>
 					<input
@@ -90,36 +95,44 @@
 						disabled={selectedType != 'days'}
 					/>
 				</div>
-				<div class="items-center gap-4 lg:flex">
-					<input
-						id="availabilityType-range"
-						class="radio"
-						type="radio"
-						value="range"
-						name="availabilityType"
-						aria-label="radio select for range availability type"
-						bind:group={selectedType}
-					/>
-					<div class="label">Date Range</div>
-					<input
-						id="availabilityFrom"
-						class="input input-sm"
-						type="date"
-						name="availabilityFrom"
-						value={format(data.event.availability.start, 'yyyy-MM-dd')}
-						aria-label="availabilityFrom"
-						disabled={selectedType != 'range'}
-					/>
-					<div>-</div>
-					<input
-						id="availabilityTo"
-						class="input input-sm"
-						type="date"
-						aria-label="availabilityTo"
-						value={format(data.event.availability.end, 'yyyy-MM-dd')}
-						name="availabilityTo"
-						disabled={selectedType != 'range'}
-					/>
+				<div class="flex flex-col gap-4 lg:flex-row lg:items-center">
+					<div class="flex gap-4">
+						<input
+							id="availabilityType-range"
+							class="radio"
+							type="radio"
+							value="range"
+							name="availabilityType"
+							aria-label="radio select for range availability type"
+							bind:group={selectedType}
+						/>
+						<div class="label">Date Range</div>
+					</div>
+					<label for="availabilityFrom" class="input input-sm"
+						><span class="label">From</span>
+						<input
+							id="availabilityFrom"
+							class=""
+							type="date"
+							name="availabilityFrom"
+							value={format(data.event.availability.start, 'yyyy-MM-dd')}
+							aria-label="availabilityFrom"
+							disabled={selectedType != 'range'}
+						/>
+					</label>
+					<div class="hidden lg:block">-</div>
+					<label for="availabilityTo" class="input input-sm"
+						><span class="label">To</span>
+						<input
+							id="availabilityTo"
+							class=""
+							type="date"
+							name="availabilityTo"
+							value={format(data.event.availability.end, 'yyyy-MM-dd')}
+							aria-label="availabilityTo"
+							disabled={selectedType != 'range'}
+						/>
+					</label>
 				</div>
 				<Checkbox.Group
 					class="grid grid-cols-4 grid-rows-2 justify-between gap-4 2xl:grid-cols-7 2xl:grid-rows-1"
@@ -143,7 +156,12 @@
 										? 'border-primary text-primary'
 										: ''}"
 								>
-									{day}
+									<div class="lg:hidden">
+										{minifyDayOfWeek(day)}
+									</div>
+									<div class="hidden lg:block">
+										{day}
+									</div>
 								</Label.Root>
 							{/snippet}
 						</Checkbox.Root>
@@ -157,14 +175,14 @@
 					>
 					<button
 						type="button"
-						class="btn flex-grow btn-neutral"
+						class="btn hidden flex-grow btn-neutral lg:block"
 						onclick={() =>
 							(selectedDaysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'])}
 						>Weekdays</button
 					>
 					<button
 						type="button"
-						class="btn flex-grow btn-neutral"
+						class="btn hidden flex-grow btn-neutral lg:block"
 						onclick={() => (selectedDaysOfWeek = ['saturday', 'sunday'])}>Weekends</button
 					>
 					<button
@@ -175,11 +193,13 @@
 				</div>
 			</div>
 			<div class="divider my-8"></div>
-			<div class="flex flex-row-reverse justify-between">
-				<button type="submit" class="btn btn-primary">Save Changes</button>
-				<button formaction="?/deleteEvent" class="btn btn-outline btn-error">Delete</button>
-				<a href={`/event/${data.eventId}`} class="btn btn-error">Cancel</a>
+			<div class="flex flex-row-reverse justify-between gap-4">
+				<button type="submit" class="btn flex-2 btn-primary">Save Changes</button>
+				<a href={`/event/${data.eventId}`} class="btn flex-1 btn-neutral">Cancel</a>
 			</div>
+			<button formaction="?/deleteEvent" class="btn mt-4 w-full btn-outline btn-error"
+				>Delete</button
+			>
 		</form>
 	</div>
 </div>
