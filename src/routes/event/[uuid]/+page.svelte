@@ -201,12 +201,14 @@
 									{...event.availability}
 									daysPerPage={5}
 									userId={data.user.id}
-									submitFn={(availabilities) =>
-										updateAvailiabilities({
+									submitFn={async (availabilities) => {
+										await updateAvailiabilities({
 											user: data.user.id,
 											event: data.eventId,
 											availabilities
-										})}
+										});
+										toast.success('Updated availabilities', { position: 'bottom-center' });
+									}}
 									{timestamps}
 								/>
 							{/await}
