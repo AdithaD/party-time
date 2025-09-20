@@ -34,7 +34,7 @@
 	const totalVotes = poll.pollOptions.map((po) => po.votes.length).reduce((a, b) => a + b);
 </script>
 
-<div class="card w-full bg-base-200 shadow-sm card-sm">
+<div class="group card relative w-full bg-base-300 shadow-sm card-sm">
 	<div class="card-body space-y-4">
 		<div class="flex items-baseline gap-4">
 			<h2 class="card-title">{poll.title}</h2>
@@ -70,5 +70,15 @@
 				{/each}
 			</div>
 		</form>
+		<div
+			class="absolute right-4 -bottom-2 opacity-0 transition-all group-hover:visible group-hover:opacity-100"
+		>
+			<div class="flex justify-end">
+				<form method="POST" action="?/deletePoll">
+					<input hidden value={poll.id} name="id" />
+					<button class="btn btn-xs">delete</button>
+				</form>
+			</div>
+		</div>
 	</div>
 </div>

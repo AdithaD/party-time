@@ -1,7 +1,8 @@
 import { db } from '$lib/server/db/index.js';
 import { comments, events, pollOptions, polls, pollVotes, users } from '$lib/server/db/schema.js';
-import { error, redirect } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { error, fail, redirect } from '@sveltejs/kit';
+import { and, eq } from 'drizzle-orm';
+import z from 'zod';
 
 export const load = async ({ params, locals }) => {
     const uuid = params.uuid;
@@ -58,11 +59,22 @@ export const load = async ({ params, locals }) => {
     return { event, eventId: uuid, user: locals.user }
 };
 
+
+const postPollSchema = z.object({
+    title: z.string().min(1),
+    options: z.array(z.string().min(1)).min(2),
+});
+
+const updateVoteSchema = z.object({
+    pollOption: z.number(),
+    poll: z.number(),
+});
+
 export const actions = {
     postComment: async ({ request, locals, params }) => {
         const eventId = params.uuid;
         if (!eventId || typeof eventId != 'string') {
-            error(400, "Invalid event id.")
+            return fail(400, "Invalid event id.")
         }
 
         if (locals.user === null || locals.session === null) {
@@ -74,7 +86,7 @@ export const actions = {
         const comment = data.get('comment');
 
         if (!comment || typeof comment !== 'string') {
-            error(400, "Missing comment.")
+            return fail(400, "Missing comment.")
         }
 
         await db.insert(comments).values({
@@ -90,26 +102,41 @@ export const actions = {
         const data = await request.formData();
         const eventId = data.get('event');
         if (!eventId || typeof eventId != 'string') {
-            error(400, "Invalid event id.")
+            return fail(400, "Invalid event id.")
         }
 
-        const title = validateString(data.get('title'), 'title');
-        const options = data.getAll('option').map((o) => validateString(o, 'option'));
+        const pollData = postPollSchema.safeParse({
+            title: data.get('title'),
+            options: data.getAll('options')
+        });
 
-        const poll = (await db.insert(polls).values({ event: eventId, title, createdAt: new Date() }).returning()).at(0);
-
-        if (!poll) error(500, "Failed to insert poll into database.")
-
-        await db.insert(pollOptions).values(options.map((value) => { return { poll: poll.id, value } }))
-
-
+        if (pollData.success) {
+            const poll = (await db.insert(polls).values({ event: eventId, title: pollData.data.title, createdAt: new Date() }).returning()).at(0);
+            if (!poll) error(500, "Failed to insert poll into database.")
+            await db.insert(pollOptions).values(pollData.data.options.map((value) => { return { poll: poll.id, value } }))
+        } else {
+            fail(400, "Invalid poll input")
+        }
     },
     updateVote: async ({ request, locals, params }) => {
-        if (!locals.user) redirect(303, `/event/${params.uuid}/login`);
+        if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
 
-        const data = await request.formData();
-        const pollOption = validateNumber(data.get('option'), "option");
-        const poll = validateNumber(data.get('poll'), "poll");
+        const formData = await request.formData();
+        const validationResult = updateVoteSchema.safeParse({ pollOption: formData.get('pollOption'), poll: formData.get('poll') });
+
+        if (!validationResult.success) return fail(400, validationResult.error.message);
+        const { poll, pollOption } = validationResult.data;
+
+        // check if the poll option is actually part of that poll, and the poll is part of the event.
+        const validOptionQuery = await db.select().from(pollOptions).innerJoin(polls, eq(pollOptions.poll, polls.id)).where(
+            and(
+                eq(pollOptions.id, pollOption),
+                eq(pollOptions.poll, poll), // option is part of poll
+                eq(polls.event, locals.session.event), // poll is part of event
+            )
+        );
+
+        if (validOptionQuery.length != 1) return fail(400, "Relationship constraints were not satisified.");
 
         await db.insert(pollVotes).values({ poll, pollOption, user: locals.user.id }).onConflictDoUpdate({
             target: [pollVotes.poll, pollVotes.user],
@@ -121,27 +148,35 @@ export const actions = {
         const user = await db.update(users).set({ registered: !locals.user.registered }).where(eq(users.id, locals.user.id)).returning();
 
         locals.user = user[0];
+    },
+    deleteComment: async ({ locals, params, request }) => {
+        if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+
+        const data = await request.formData();
+        const parseResult = z.coerce.number().positive().safeParse(data.get('id'));
+        console.log(parseResult)
+        if (!parseResult.success) return fail(400, "Invalid id");
+
+        const id = parseResult.data;
+
+        const result = await db.delete(comments).where(and(eq(comments.id, id), eq(comments.event, locals.session.event)));
+        if (result.rowsAffected < 1) {
+            return fail(400, "Couldn't find specified resource.")
+        }
+    },
+    deletePoll: async ({ locals, params, request }) => {
+        if (!locals.user || !locals.session) redirect(303, `/event/${params.uuid}/login`);
+
+        const data = await request.formData();
+        const parseResult = z.coerce.number().positive().safeParse(data.get('id'));
+        console.log(parseResult)
+        if (!parseResult.success) return fail(400, "Invalid id");
+
+        const id = parseResult.data;
+
+        const result = await db.delete(polls).where(and(eq(polls.id, id), eq(polls.event, locals.session.event)));
+        if (result.rowsAffected < 1) {
+            return fail(400, "Couldn't find specified resource.")
+        }
     }
 };
-
-function validateString(str: FormDataEntryValue | null, fieldName: string): string {
-    if (!str || typeof str !== 'string') {
-        error(400, `Invalid ${fieldName}`)
-    }
-
-    return str;
-}
-
-function validateNumber(str: FormDataEntryValue | null, fieldName: string): number {
-
-    if (!str || typeof str !== 'string') {
-        error(400, `Invalid ${fieldName}`)
-    }
-    let number: number;
-    try {
-        number = parseInt(str);
-    } catch {
-        error(400, "Invalid option id.")
-    }
-    return number;
-}
