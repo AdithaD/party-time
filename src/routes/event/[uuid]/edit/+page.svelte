@@ -1,17 +1,20 @@
 <script lang="ts">
-	import { dateToDatetimeLocalString, daysOfWeek } from '$lib/utils.js';
+	import { bitfieldToDaysOfWeek, dateToDatetimeLocalString, daysOfWeek } from '$lib/utils.js';
 	import { Checkbox, Label } from 'bits-ui';
+	import { format } from 'date-fns';
 
 	let { data, form } = $props();
 
 	type DaysOfWeek = (typeof daysOfWeek)[number];
 
-	let selectedDaysOfWeek = $state<DaysOfWeek[]>([]);
+	let selectedDaysOfWeek = $state<DaysOfWeek[]>(
+		bitfieldToDaysOfWeek(data.event.availability.daysOfWeek).values().toArray()
+	);
 
 	let newEvent = $state(data.event);
 	let hasEdits = $state(false);
 
-	let selectedType = $state<'days' | 'range'>('days');
+	let selectedType = $state<'days' | 'range'>('range');
 </script>
 
 <div class="relative flex min-h-screen items-stretch justify-center">
@@ -103,6 +106,7 @@
 						class="input input-sm"
 						type="date"
 						name="availabilityFrom"
+						value={format(data.event.availability.start, 'yyyy-MM-dd')}
 						aria-label="availabilityFrom"
 						disabled={selectedType != 'range'}
 					/>
@@ -112,6 +116,7 @@
 						class="input input-sm"
 						type="date"
 						aria-label="availabilityTo"
+						value={format(data.event.availability.end, 'yyyy-MM-dd')}
 						name="availabilityTo"
 						disabled={selectedType != 'range'}
 					/>
