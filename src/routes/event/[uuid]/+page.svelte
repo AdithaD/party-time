@@ -138,7 +138,13 @@
 						</div>
 					</div>
 					<div>
-						<p class="wrap-break-word">{event.description}</p>
+						<div class="collapse border border-base-300 bg-base-100">
+							<input type="checkbox" name="availability-collapse" checked />
+							<div class="collapse-title font-semibold">Description</div>
+							<div class="collapse-content text-sm">
+								<p class=" wrap-break-word">{event.description}</p>
+							</div>
+						</div>
 					</div>
 					<div>
 						<div class="collapse border border-base-300 bg-base-100">
@@ -166,7 +172,7 @@
 			{/if}
 		{/await}
 	</div>
-	<div class="flex max-h-screen w-1/3 flex-col bg-base-100 p-16 shadow-2xl">
+	<div class="flex min-h-screen w-1/3 flex-col bg-base-100 p-16 shadow-2xl">
 		<h2 class="mb-4 text-2xl font-bold shadow-xl">Feed</h2>
 		{#await getFeed(event.id)}
 			<div class="flex items-center justify-center">
