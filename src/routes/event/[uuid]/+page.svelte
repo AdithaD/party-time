@@ -124,7 +124,7 @@
 						</div>
 					</div>
 					<div>
-						<p>{event.description}</p>
+						<p class="wrap-break-word">{event.description}</p>
 					</div>
 					<div>
 						<div class="collapse border border-base-300 bg-base-100">
