@@ -14,12 +14,12 @@ const eventEditSchema = z.object({
 	title: z.string().min(1).max(100),
 	description: z.string().max(10000).optional(),
 	location: z.string().max(100).optional(),
-	dateTimeFrom: z
+	datetimeFrom: z
 		.string()
 		.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
 		.transform((string) => datetimeLocalToDate(string))
 		.optional(),
-	dateTimeTo: z
+	datetimeTo: z
 		.string()
 		.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
 		.transform((string) => datetimeLocalToDate(string))
@@ -78,8 +78,8 @@ export const actions = {
 				await db
 					.update(events)
 					.set({
-						scheduledTime: result.data.dateTimeFrom,
-						endTime: result.data.dateTimeTo,
+						scheduledTime: result.data.datetimeFrom,
+						endTime: result.data.datetimeTo,
 						...result.data
 					})
 					.where(eq(events.id, locals.session.event));

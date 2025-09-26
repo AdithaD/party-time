@@ -7,6 +7,7 @@
 	import Poll from '$lib/components/Poll.svelte';
 	import { page } from '$app/state';
 	import toast from 'svelte-french-toast';
+	import { format } from 'date-fns';
 
 	let { data } = $props();
 	const { event } = data;
@@ -33,6 +34,12 @@
 			style: 'background: oklch(21% 0.006 56.043); color:white;',
 			position: 'bottom-center'
 		});
+	}
+
+	function getTimeString(date: Date | null, defaultString = '') {
+		if (date == null) return defaultString;
+
+		return format(date, 'hh:mm dd MMM yy');
 	}
 </script>
 
@@ -155,8 +162,8 @@
 							/>
 						</svg>
 						<div>
-							{event.scheduledTime?.toLocaleString() ?? 'No time set.'}{event.endTime
-								? `- ${event.endTime.toLocaleString()}`
+							{getTimeString(event.scheduledTime, 'No time set.')}{event.endTime
+								? ` - ${getTimeString(event.endTime)}`
 								: ''}
 						</div>
 					</div>

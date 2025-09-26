@@ -42,24 +42,24 @@
 					<input
 						class="input"
 						type="datetime-local"
-						name="datetime-from"
+						name="datetimeFrom"
 						id="datetime-from"
 						value={data.event.scheduledTime
 							? dateToDatetimeLocalString(data.event.scheduledTime)
 							: ''}
 					/>
-					<div class="text-error">{form?.zodError?.fieldErrors.dateTimeFrom}</div>
+					<div class="text-error">{form?.zodError?.fieldErrors.datetimeFrom}</div>
 				</div>
 				<div class="flex flex-col gap-3">
 					<label class="label" for="datetime-to">End Time</label>
 					<input
 						class="input"
 						type="datetime-local"
-						name="datetime-to"
+						name="datetimeTo"
 						id="datetime-to"
 						value={data.event.endTime ? dateToDatetimeLocalString(data.event.endTime) : ''}
 					/>
-					<div class="text-error">{form?.zodError?.fieldErrors.dateTimeTo}</div>
+					<div class="text-error">{form?.zodError?.fieldErrors.datetimeTo}</div>
 				</div>
 			</div>
 			<div class="flex flex-col gap-3">
