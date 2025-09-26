@@ -138,7 +138,6 @@
 					class="grid grid-cols-4 grid-rows-2 justify-between gap-4 2xl:grid-cols-7 2xl:grid-rows-1"
 					name="daysOfWeek"
 					bind:value={selectedDaysOfWeek}
-					onValueChange={console.log}
 				>
 					{#each daysOfWeek as day}
 						<Checkbox.Root

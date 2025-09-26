@@ -31,6 +31,8 @@
 
 	let optionForm: HTMLFormElement;
 
+	$inspect(poll);
+
 	const totalVotes = poll.pollOptions.map((po) => po.votes.length).reduce((a, b) => a + b);
 </script>
 
@@ -52,7 +54,7 @@
 								<input
 									type="radio"
 									class="radio radio-primary"
-									name="option"
+									name="pollOption"
 									id="{poll.id}-{option.id}"
 									checked={option.votes.find((v) => v.user.id == userId) != null}
 									value={option.id}
